@@ -6,11 +6,196 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
-    <Button
-        android:id="@+id/testBtn"
-        android:text="test Location"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/vNtripServer"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:hint="输入ntrip服务器地址" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="端口号:" />
+
+                <EditText
+                    android:id="@+id/vPort"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:inputType="number"
+                    android:text="2102" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="挂载点:" />
+
+                <EditText
+                    android:id="@+id/vMount"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:text="mount" />
+
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/vNtripStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="ntrip当前状态:未连接"
+                android:textColor="#ff0000" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="用户名:" />
+
+                <EditText
+                    android:id="@+id/vUserName"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:text="username" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="密码:" />
+
+                <EditText
+                    android:id="@+id/vPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:text="password" />
+
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/vConnectNtrip"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="连接Ntrip服务" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="上报服务器地址:" />
+
+                <EditText
+                    android:id="@+id/vUpload"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:text="172.16.1.50" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="端口" />
+
+                <EditText
+                    android:id="@+id/vUploadPort"
+                    android:layout_width="60dp"
+                    android:layout_height="45dp"
+                    android:inputType="number"
+                    android:text="3000" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="上报频率(s):" />
+
+                <EditText
+                    android:id="@+id/vFrequence"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:inputType="number"
+                    android:text="10" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/vUploadStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="上报服务器当前状态:未连接"
+                android:textColor="#ff0000" />
+
+            <TextView
+                android:id="@+id/vSerialPortStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="串口状态:未连接"
+                android:textColor="#ff0000" />
+
+            <Button
+                android:id="@+id/vConnectUpload"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="连接上传服务器" />
+
+            <Button
+                android:id="@+id/testBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="test Location" />
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>
+
+

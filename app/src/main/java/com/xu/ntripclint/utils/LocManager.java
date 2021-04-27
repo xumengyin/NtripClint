@@ -27,7 +27,6 @@ import java.util.List;
  *
  */
 public class LocManager {
-
     private static LocManager ourInstance;
     static Context mContext;
 
@@ -63,7 +62,7 @@ public class LocManager {
 
         @Override
         public void onNmeaReceived(long timestamp, String nmea) {
-            Logs.d("onNmeaReceived222222222----" + nmea);
+            //Logs.d("onNmeaReceived222222222----" + nmea);
             for (LocChangeNmeaLisener nmeaListener : nmeaListeners) {
                 nmeaListener.onLocationChanged(nmea, timestamp);
             }
@@ -144,7 +143,7 @@ public class LocManager {
                 OnNmeaMessageListener onNmeaMessageListener = new OnNmeaMessageListener() {
                     @Override
                     public void onNmeaMessage(String message, long timestamp) {
-                        Logs.d("OnNmeaMessageListener:===" + message);
+                        //Logs.d("OnNmeaMessageListener:===" + message);
                         for (LocChangeNmeaLisener nmeaListener : nmeaListeners) {
                             nmeaListener.onLocationChanged(message, timestamp);
                         }
@@ -172,7 +171,7 @@ public class LocManager {
                     @Override
                     public void onSatelliteStatusChanged(GnssStatus status) {
                         super.onSatelliteStatusChanged(status);
-                        Logs.d("onGnssCallBack:===status::"+status.getSatelliteCount());
+                       // Logs.d("onGnssCallBack:===status::"+status.getSatelliteCount());
                     }
                 };
                 locationManager.registerGnssStatusCallback(onGnssCallBack);

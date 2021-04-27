@@ -19,7 +19,7 @@ public class OBDManager {
 
     public static OBDManager getInstance(Context context) {
         if (ourInstance == null) {
-            ourInstance = new OBDManager(context);
+            ourInstance = new OBDManager(context.getApplicationContext());
         }
         return ourInstance;
 

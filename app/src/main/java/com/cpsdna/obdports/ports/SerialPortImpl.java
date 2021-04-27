@@ -1,6 +1,9 @@
 package com.cpsdna.obdports.ports;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 
 import com.xu.ntripclint.utils.Logs;
 
@@ -12,26 +15,46 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Created by W.
+ * Created by xu
  */
 
 public class SerialPortImpl extends AbstractPort {
 
 
-    public static final String TEST_DEVICE = "/dev/ttyS0";
-    public static final int TEST_BAUDRATE = 115200;
+//    public static final String TEST_DEVICE = "/dev/ttyS0";
+//    public static final int TEST_BAUDRATE = 115200;
+    public static final String TEST_DEVICE = "/dev/ttyMT0";
+    public static final int TEST_BAUDRATE = 19200;
 
     Context mContext;
     DNASerialPort DNASerialPort;
     public OutputStream mOutputStream;
     InputStream mInputStream;
     ReadThread readThread;
-
+    HandlerThread dealThread = new HandlerThread("SerialPortImpl");
+    Handler dealHandler;
 
     public SerialPortImpl(Context context) {
         mContext = context;
+        dealThread.start();
+        initHandler();
     }
 
+    private void initHandler() {
+        dealHandler = new Handler(dealThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                //发送数据
+                if (msg.what == 1) {
+                    try {
+                        sendData((byte[]) msg.obj);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+    }
 
     public void open() throws IOException {
         if (mInputStream != null) {
@@ -87,6 +110,9 @@ public class SerialPortImpl extends AbstractPort {
     }
 
     public void close() {
+        if (dealThread != null) {
+            dealThread.quit();
+        }
         if (readThread != null) {
             readThread.interrupt();
             readThread = null;
@@ -130,15 +156,18 @@ public class SerialPortImpl extends AbstractPort {
         }
     }
 
-    public void sendDataPackage(byte[] data) throws IOException {
+    private void sendData(byte[] data) throws IOException {
         if (mOutputStream == null)
             throw new IOException("not opened.");
-        Logs.d("发给OBD的数据<<<<<<<<" + UtilityTools.bytesToHexString(data));
-        if (data == null) {
-            return;
-        }
+        Logs.d("发给串口的数据<<<<<<<<" + UtilityTools.bytesToHexString(data));
         mOutputStream.write(data);
         mOutputStream.flush();
+    }
+
+    public void sendDataPackage(byte[] data) throws IOException {
+        Message msg = dealHandler.obtainMessage(1);
+        msg.obj = data;
+        dealHandler.sendMessage(msg);
     }
 
     class ReadThread extends Thread {
@@ -146,104 +175,37 @@ public class SerialPortImpl extends AbstractPort {
         public void run() {
             super.run();
             DataInputStream dInput = new DataInputStream(mInputStream);
+            final byte[] content = new byte[1024];
+            int read;
             while (!interrupted()) {
                 try {
-                    int first;
-                    boolean isHead = false;
-                    while (true) {
-                        int b = dInput.read();
-                        if (b == -1) {
-                            //Log.i("CpsdnaLo", "-1");
-                            //throw new IOException("data is at the end.");
-                        }
-                        if (isHead) {
-                            if (b != 0x7e) {
-                                first = b;
-                                break;
-                            }
-                        } else {
-                            if (b == 0x7e) {
-                                isHead = true;
-                                continue;
-                            }
-                        }
-                    }
-//                    if(debugTest)
-//                    {
-//                        debugTest=false;
-//                        throw new IOException("debugTest--IOException");
-//                    }
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    while (first != 0x7e) {
-                        if (first == 0x7d) {
-                            first = dInput.read();
-                            if (first == -1) {
-                                throw new IOException("data is at the end. 2");
-                            }
-                            if (first == 0x02) {
-                                out.write(0x7e);
-                                first = dInput.read();
-                                if (first == -1) {
-                                    throw new IOException("data is at the end. 3");
-                                }
-                            } else if (first == 0x01) {
-                                out.write(0x7d);
-                                first = dInput.read();
-                                if (first == -1) {
-                                    throw new IOException("data is at the end. 4");
-                                }
-                            } else {
-                                out.write(0x7d);
-                            }
-                        } else {
-                            out.write(first);
-                            first = dInput.read();
-                            if (first == -1) {
-                                throw new IOException("data is at the end. 5");
-                            }
-                        }
-                    }
-                    final byte[] data = out.toByteArray();
-                    int contentLength = data.length - 1 - 8;
-                    if (contentLength < 0) {
-                        Logs.d("data length is wrong,ignore...");
-                        continue;
-                    }
-                    byte cs = 0x00;
-                    for (int i = 0; i < data.length - 1; i++) {
-                        cs = (byte) (cs ^ data[i]);
-                    }
-                    if (cs != data[data.length - 1]) {
-                        Logs.d("checksum is wrong,ignore...");
-                        continue;
-                    }
-                    // 获取ID
-                    short id;
-                    if (data.length > 1) {
-                        id = (short) ((data[0] & 0xff) << 8 | data[1] & 0xff);
-                    } else {
-                        Logs.d("data length is wrong,ignore...");
-                        continue;
-                    }
+
 
                     // 获取内容
-                    final byte[] content = new byte[contentLength];
-                    for (int i = 0; i < content.length; i++) {
-                        content[i] = data[8 + i];
+
+                    read = dInput.read(content);
+                    while (read != -1) {
+                        byte[] temp = new byte[read];
+                        System.arraycopy(content, 0, temp, 0, read);
+                        if (callback != null)
+                            callback.onReceive(temp);
+                        read = dInput.read(content);
                     }
-                    if (callback != null)
-                        callback.onReceive(id, content, data);
+                    throw new IOException("read data end");
                 } catch (IOException e) {
                     Logs.d("io error in receiving:  " + e.getMessage());
-                    dealException();
-                    if (mInputStream != null) {
-                        dInput = new DataInputStream(mInputStream);
-                    } else {
-                        close();
-                    }
                     if (callback != null) {
                         callback.onError(e);
                         //reOpen();
+                    }
+                    dealException();
+                    if (mInputStream != null) {
+                        dInput = new DataInputStream(mInputStream);
+                        if (callback != null) {
+                            callback.onStart();
+                        }
+                    } else {
+                        close();
                     }
                 }
 

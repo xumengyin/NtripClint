@@ -12,7 +12,7 @@ public abstract class OBDCallBack {
 
 	}
 
-	protected abstract void onReceive(short id, byte[] data, byte[] allData);
+	protected abstract void onReceive(byte[] allData);
 
 	protected void onError(Exception e) {
 
