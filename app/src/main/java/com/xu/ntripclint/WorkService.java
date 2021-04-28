@@ -38,7 +38,9 @@ public class WorkService extends Service {
      * 模拟gpgga 发送给ntrip
      */
     public static final boolean mockGpgga = false;
-    public  boolean mockUpload = false;
+    public boolean mockUpload = false;
+    //复用ntrip通道上传
+    public boolean reUseNtripChanel = false;
     String currentFixNmea;
     String currentNmea;
     private final WorkBinder workBinder = new WorkBinder();
@@ -184,6 +186,7 @@ public class WorkService extends Service {
      * @param bean
      */
     public void setUploadConfigData(ConfigBean bean) {
+        reUseNtripChanel=false;
         uploadConfig = bean;
         netManager.setConfig(bean.uploadServer, bean.uploadPort);
         netManager.start(new NetCallback() {
@@ -203,6 +206,17 @@ public class WorkService extends Service {
                 Logs.d("net data:" + UtilityTools.bytesToHexString(allData));
             }
         });
+        StartUploadData(uploadConfig.uploadTime * 1000);
+    }
+
+    public void setReUseNtripChanel(boolean reUseNtripChanel) {
+        this.reUseNtripChanel = reUseNtripChanel;
+    }
+
+    public void reuseNtripChanel(ConfigBean bean) {
+        reUseNtripChanel = true;
+        uploadConfig=bean;
+        serviceCallBack.onNetStatus(IServiceCallBack.STATUS_OK);
         StartUploadData(uploadConfig.uploadTime * 1000);
     }
 
@@ -227,7 +241,10 @@ public class WorkService extends Service {
                 }
                 if (!TextUtils.isEmpty(data)) {
                     try {
-                        netManager.writeDirect(data, getBattery());
+                        if (!reUseNtripChanel)
+                            netManager.writeDirect(data, getBattery());
+                        else
+                            ntripManager.writeUploadData(data, getBattery());
                     } catch (IOException e) {
                         Logs.w("写入net数据异常");
                         e.printStackTrace();

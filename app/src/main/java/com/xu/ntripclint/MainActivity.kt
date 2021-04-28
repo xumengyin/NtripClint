@@ -211,25 +211,37 @@ class MainActivity : AppCompatActivity() {
             val uploadServer = vUpload.text.toString()
             val uploadServerport = vUploadPort.text.toString()
             val frequence = vFrequence.text.toString()
+
+            val server = vNtripServer.text.toString()
+            val port = vPort.text.toString()
+
             if (checkData(uploadServer, "上传服务器不能为空") && checkData(frequence, "上传频率不能为空")) {
-                service?.apply {
-                    Storage.saveUploadData(
-                        this@MainActivity,
-                        uploadServer,
-                        uploadServerport.toInt(),
-                        frequence.toInt()
-                    )
-                    val config = ConfigBean(
-                        "",
-                        0,
-                        "",
-                        "",
-                        "",
-                        uploadServer,
-                        uploadServerport.toInt(),
-                        frequence.toInt()
-                    )
-                    setUploadConfigData(config)
+                val config = ConfigBean(
+                    "",
+                    0,
+                    "",
+                    "",
+                    "",
+                    uploadServer,
+                    uploadServerport.toInt(),
+                    frequence.toInt()
+                )
+                //需求 如果和ntrip服务器一样 就复用ntrip的连接
+                if(uploadServer == server && uploadServerport == port)
+                {
+                    service?.reuseNtripChanel(config)
+                }else
+                {
+                    service?.apply {
+                        Storage.saveUploadData(
+                            this@MainActivity,
+                            uploadServer,
+                            uploadServerport.toInt(),
+                            frequence.toInt()
+                        )
+
+                        setUploadConfigData(config)
+                    }
                 }
             }
         }

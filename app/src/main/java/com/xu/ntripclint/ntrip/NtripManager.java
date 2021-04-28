@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import com.xu.ntripclint.pojo.ConfigBean;
 import com.xu.ntripclint.utils.Logs;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +39,7 @@ public class NtripManager implements INtrip {
     private static final int MSG_NETWORK_TIMEOUT = 198;
     private static final int MSG_NETWORK_FINISHED = 199;
     private static final int MSG_NETWORK_SEND_DATA = 200;
+    private static final int MSG_NETWORK_UPLOAD_DATA = 300;
 
     static {
         manager = new NtripManager();
@@ -47,7 +49,7 @@ public class NtripManager implements INtrip {
     Thread nThread;
     Socket nsocket; // Network Socket
     InputStream nis = null; // Network Input Stream
-    OutputStream nos = null; // Network Output Stream
+    DataOutputStream nos = null; // Network Output Stream
     String server = TEST_SERVER, userName = TEST_USERNAME, userPass = TEST_USERPASS, mountPoint = TEST_MOUNT;
     int port = TEST_PORT;
     private Timer timer;
@@ -89,14 +91,17 @@ public class NtripManager implements INtrip {
                 byte[] buffer1 = (byte[]) msg.obj;
                 parseNetworkDataStream(buffer1);
                 break;
+            case MSG_NETWORK_UPLOAD_DATA:
+                byte[] data = (byte[]) msg.obj;
+                writeUploadData(data);
+                break;
         }
     }
 
     private void handlerMainThreadMsg(Message msg) {
         switch (msg.what) {
             case MSG_NETWORK_SEND_DATA:
-                if(callBack!=null)
-                {
+                if (callBack != null) {
                     callBack.onReceive((byte[]) msg.obj);
                 }
                 break;
@@ -109,16 +114,17 @@ public class NtripManager implements INtrip {
 
         }
     }
+
     private String GenerateGGAFromLatLon() {
         String gga = "GPGGA,000001,";
 
         double posnum = Math.abs(ManualLat);
         double latmins = posnum % 1;
-        int ggahours = (int)(posnum - latmins);
+        int ggahours = (int) (posnum - latmins);
         latmins = latmins * 60;
         double latfracmins = latmins % 1;
-        int ggamins = (int)(latmins - latfracmins);
-        int ggafracmins = (int)(latfracmins * 10000);
+        int ggamins = (int) (latmins - latfracmins);
+        int ggafracmins = (int) (latfracmins * 10000);
         ggahours = ggahours * 100 + ggamins;
         if (ggahours < 1000) {
             gga += "0";
@@ -145,11 +151,11 @@ public class NtripManager implements INtrip {
 
         posnum = Math.abs(ManualLon);
         latmins = posnum % 1;
-        ggahours = (int)(posnum - latmins);
+        ggahours = (int) (posnum - latmins);
         latmins = latmins * 60;
         latfracmins = latmins % 1;
-        ggamins = (int)(latmins - latfracmins);
-        ggafracmins = (int)(latfracmins * 10000);
+        ggamins = (int) (latmins - latfracmins);
+        ggafracmins = (int) (latfracmins * 10000);
         ggahours = ggahours * 100 + ggamins;
         if (ggahours < 10000) {
             gga += "0";
@@ -184,6 +190,7 @@ public class NtripManager implements INtrip {
         //Log.i("Manual GGA", "$" + gga + "*" + checksum);
         return "$" + gga + "*" + checksum;
     }
+
     private String CalculateChecksum(String line) {
         int chk = 0;
         for (int i = 0; i < line.length(); i++) {
@@ -195,18 +202,65 @@ public class NtripManager implements INtrip {
         }
         return chk_s;
     }
+
     private void SendGGAToCaster(String ggaData) {
 //        if (UseManualLocation) {
 //            SendDataToNetwork(GenerateGGAFromLatLon() + "\r\n");
 //        } else {
 //            SendDataToNetwork(MostRecentGGA + "\r\n");
 //        }
-        if(!TextUtils.isEmpty(ggaData)&&NetworkDataMode==99)
-        {
-            Logs.w("send gpa to ntrip:"+ggaData);
-            SendDataToNetwork(ggaData+"\r\n");
+        if (!TextUtils.isEmpty(ggaData) && NetworkDataMode == 99) {
+            Logs.w("send gpa to ntrip:" + ggaData);
+            SendDataToNetwork(ggaData + "\r\n");
         }
     }
+
+    private void writeUploadData(byte[] data) {
+        try {
+            if (nsocket != null) {
+                if (nsocket.isConnected()) {
+                    if (!nsocket.isClosed()) {
+                        //Log.i("SendDataToNetwork", "SendDataToNetwork: Writing message to socket");
+                        nos.write(data);
+                        nos.flush();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            //Log.i("SendDataToNetwork", "SendDataToNetwork: Message send failed. Caught an exception");
+        }
+    }
+
+    private int count = 0; // 包序列
+    int isFristData = 1;
+
+    /*
+    上报数据
+ */
+    public void writeUploadData(String gpgga, int battery) {
+
+        byte[] temps = gpgga.getBytes();
+        byte[] data = new byte[temps.length + 4];
+        System.arraycopy(gpgga.getBytes(), 0, data, 0, temps.length);
+        byte mark = 0;
+        count++;
+        if (count > 255) {
+            count = 0;
+        }
+        byte packCount = (byte) (count & 0xff);
+        byte batteryByte = (byte) (battery & 0xff);
+        byte dataStatus = (byte) (isFristData & 0xff);
+        data[temps.length] = mark;
+        data[temps.length + 1] = packCount;
+        data[temps.length + 2] = batteryByte;
+        data[temps.length + 3] = dataStatus;
+        isFristData = 0;
+        Message msg = dataHandler.obtainMessage(MSG_NETWORK_UPLOAD_DATA);
+        msg.obj = data;
+        dataHandler.sendMessage(msg);
+    }
+
     public void SendDataToNetwork(String cmd) {
         try {
             if (nsocket != null) {
@@ -227,6 +281,7 @@ public class NtripManager implements INtrip {
             //Log.i("SendDataToNetwork", "SendDataToNetwork: Message send failed. Caught an exception");
         }
     }
+
     private int NetworkDataMode = 0;
     private String NTRIPResponse = "";
 
@@ -234,13 +289,13 @@ public class NtripManager implements INtrip {
         if (NetworkDataMode == 0) {
             NTRIPResponse += new String(buffer);
             callBack.onReceiveDebug(NTRIPResponse);
-            Log.d("xuxu","NTRIP receive"+NTRIPResponse);
+            Log.d("xuxu", "NTRIP receive" + NTRIPResponse);
             if (NTRIPResponse.startsWith("ICY 200 OK")) {
                 callBack.onConnected();
 //                if (NTRIPStreamRequiresGGA) {
                 NetworkDataMode = 99; // Put in to data mode
                 // todo  test
-                  // SendGGAToCaster(GenerateGGAFromLatLon());
+                // SendGGAToCaster(GenerateGGAFromLatLon());
 //                }
 
                 Logs.d("NTRIP: Connected to caster");
@@ -255,7 +310,7 @@ public class NtripManager implements INtrip {
                 // CheckIfDownloadedSourceTableIsComplete();
             } else if (NTRIPResponse.length() > 1024) { // We've received 1KB of data but no start command. WTF?
                 Logs.d("NTRIP: Unrecognized server response:");
-                Log.d("NTRIP","NTRIP big data:"+NTRIPResponse);
+                Log.d("NTRIP", "NTRIP big data:" + NTRIPResponse);
                 TerminateNTRIPThread("NTRIP接收文件错误");
             }
         } else if (NetworkDataMode == 1) { // Save SourceTable
@@ -267,8 +322,8 @@ public class NtripManager implements INtrip {
 
             //todo 给串口
             //SendDataToBluetooth(buffer);
-            Message msg=mainHandler.obtainMessage(MSG_NETWORK_SEND_DATA);
-            msg.obj=buffer;
+            Message msg = mainHandler.obtainMessage(MSG_NETWORK_SEND_DATA);
+            msg.obj = buffer;
             mainHandler.sendMessage(msg);
         }
     }
@@ -288,7 +343,7 @@ public class NtripManager implements INtrip {
             nThread = null;
             moribund.interrupt();
             callBack.onDisConnect(error);
-            NetworkDataMode=0;
+            NetworkDataMode = 0;
         }
         //NTRIPShouldBeConnected = restart;
 //        if (restart) {
@@ -312,16 +367,17 @@ public class NtripManager implements INtrip {
         userName = bean.userName;
         userPass = bean.password;
     }
+
     NtripCallBack callBack;
+
     @Override
     public void setCallBack(NtripCallBack callBack) {
-        this.callBack=callBack;
+        this.callBack = callBack;
     }
 
     @Override
     public void sendGPGGA(String gpgga) {
-        if(!TextUtils.isEmpty(gpgga))
-        {
+        if (!TextUtils.isEmpty(gpgga)) {
             SendGGAToCaster(gpgga);
         }
     }
@@ -343,9 +399,9 @@ public class NtripManager implements INtrip {
             Runnable clint = new NetworkClient(server, port, mountPoint, userName, userPass);
             nThread = new Thread(clint);
             nThread.start();
-            NTRIPResponse="";
+            NTRIPResponse = "";
             NetworkIsConnected = true;
-            NetworkDataMode=0;
+            NetworkDataMode = 0;
         }
     }
 
@@ -389,14 +445,14 @@ public class NtripManager implements INtrip {
 
         public void run() {
             try {
-                Logs.w("NetworkClient start server:"+nServer+"--port:"+port);
+                Logs.w("NetworkClient start server:" + nServer + "--port:" + port);
                 SocketAddress sockaddr = new InetSocketAddress(nServer, nPort);
                 nsocket = new Socket();
                 nsocket.connect(sockaddr, 20 * 1000); // 10 second connection timeout
                 if (nsocket.isConnected()) {
                     nsocket.setSoTimeout(0); // 20 second timeout once data is flowing
                     nis = nsocket.getInputStream();
-                    nos = nsocket.getOutputStream();
+                    nos = new DataOutputStream(nsocket.getOutputStream());
                     //Log.i(NTAG, "Socket created, streams assigned");
 
 
