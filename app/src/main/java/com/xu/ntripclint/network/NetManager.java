@@ -99,6 +99,7 @@ public final class NetManager {
     private void handleStart() {
         boolean shouldStart = isStarted;
         shouldQuit = false;
+        shouldReconnect=false;
         if (!shouldStart && !isConnecting) {
             startImpl();
         } else {

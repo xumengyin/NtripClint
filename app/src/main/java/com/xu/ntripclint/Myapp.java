@@ -2,6 +2,8 @@ package com.xu.ntripclint;
 
 import android.app.Application;
 
+import com.xu.ntripclint.utils.CrashHandler;
+
 public class Myapp extends Application {
 
     @Override
@@ -15,5 +17,8 @@ public class Myapp extends Application {
 //
 //            }
 //        },);
+
+        CrashHandler crashHandler = CrashHandler.getInstance();
+        crashHandler.init(this);
     }
 }

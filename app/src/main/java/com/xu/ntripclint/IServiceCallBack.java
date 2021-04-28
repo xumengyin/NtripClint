@@ -9,4 +9,6 @@ public interface IServiceCallBack {
     void onNetStatus(int status);
 
     void onNtripStatus(int status,String error);
+
+    void ntripDebugData(String data);
 }

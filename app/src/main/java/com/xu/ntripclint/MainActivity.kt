@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     val rxPermissions = RxPermissions(this@MainActivity)
     var serviceBinder: IBinder? = null
     var service: WorkService? = null
+    var demonServiceStart = false
     val conn = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName?) {
             Logs.d("onServiceDisconnected")
@@ -38,6 +39,8 @@ class MainActivity : AppCompatActivity() {
                 service = (serviceBinder as WorkService.WorkBinder).service
                 //更新一次状态
                 updateView()
+                service?.switchUploadGpgga(false)
+                service?.setMockUpload(false)
                 service?.setServiceCallBack(object : IServiceCallBack {
                     override fun onSerialPortStatus(status: Int) {
                         runOnUiThread {
@@ -71,6 +74,13 @@ class MainActivity : AppCompatActivity() {
 
                     }
 
+                    override fun ntripDebugData(data: String?) {
+                        runOnUiThread {
+                            vDebugText.setText(data)
+                        }
+
+                    }
+
                 })
             }
         }
@@ -82,18 +92,14 @@ class MainActivity : AppCompatActivity() {
         } else {
             vSerialPortStatus.text = "串口连接失败"
         }
-        if(NetManager.getInstance(applicationContext).isStarted)
-        {
+        if (NetManager.getInstance(applicationContext).isStarted) {
             vUploadStatus.text = "上传服务器连接ok"
-        }else
-        {
+        } else {
             vUploadStatus.text = "上传服务器连接失败"
         }
-        if(NtripManager.getInstance().isNetworkIsConnected)
-        {
+        if (NtripManager.getInstance().isNetworkIsConnected) {
             vNtripStatus.text = "ntrip连接ok"
-        }else
-        {
+        } else {
             vNtripStatus.text = "ntrip连接失败"
         }
     }
@@ -103,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, TestLocActivity::class.java))
         }
         //test  获取电量
-
+//        val kk=3/0
 
         val manager = getSystemService(BATTERY_SERVICE) as BatteryManager;
         val value1 = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
@@ -120,16 +126,11 @@ class MainActivity : AppCompatActivity() {
         test()
         rxPermissions.request(
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
         ).subscribe { grant ->
             if (grant) {
-                val intent = Intent(this@MainActivity, WorkService::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(intent)
-                } else {
-                    startService(intent)
-                }
-                bindService(intent, conn, Context.BIND_AUTO_CREATE)
+                createService()
             } else {
                 finish()
             }
@@ -138,7 +139,48 @@ class MainActivity : AppCompatActivity() {
         initView()
     }
 
-    fun initView() {
+    private fun createService() {
+        val isDeamon = Storage.getIsDaemon(this)
+        val intent = Intent(this@MainActivity, WorkService::class.java)
+//        if (isDeamon) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+//            demonServiceStart=true
+//        }
+        bindService(intent, conn, Context.BIND_AUTO_CREATE)
+    }
+
+    private fun destroyService()
+    {
+        unbindService(conn)
+        val isDeamon = Storage.getIsDaemon(this)
+        if(!isDeamon)
+        {
+            stopService(Intent(this@MainActivity, WorkService::class.java))
+        }
+    }
+    private fun initView() {
+        vCheckService.setOnCheckedChangeListener { buttonView, isChecked ->
+
+                Storage.saveIsDaemon(this@MainActivity,isChecked)
+
+        }
+        vGGa.setOnCheckedChangeListener { buttonView, isChecked ->
+
+               service?.apply {
+                   switchUploadGpgga(isChecked)
+               }
+
+        }
+        vMockData.setOnCheckedChangeListener { buttonView, isChecked ->
+            service?.apply {
+                setMockUpload(isChecked)
+            }
+
+        }
         vConnectNtrip.setOnClickListener {
             val server = vNtripServer.text.toString()
             val port = vPort.text.toString()
@@ -159,7 +201,7 @@ class MainActivity : AppCompatActivity() {
                         pass
                     )
                     val config = ConfigBean(server, port.toInt(), mount, usrName, pass, "", 0)
-                    setNtipConfigData(config)
+                    setNtipConfigData(config,vGGa.isChecked)
 
                 }
             }
@@ -212,10 +254,11 @@ class MainActivity : AppCompatActivity() {
             vFrequence.setText("${uploadTime}")
             vUploadPort.setText("${uploadPort}")
         }
+        vCheckService.isChecked = Storage.getIsDaemon(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(conn)
+        destroyService()
     }
 }

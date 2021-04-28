@@ -4,4 +4,5 @@ public interface NtripCallBack {
     void onReceive(byte[]data);
     void onConnected();
     void onDisConnect(String error);
+    void onReceiveDebug(String error);
 }

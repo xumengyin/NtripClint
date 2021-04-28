@@ -26,6 +26,7 @@ public class Storage {
     public static String KEY_UPLOAD_SERVER = "KEY_UPLOAD_SERVER";
     public static String KEY_UPLOAD_PORT = "KEY_UPLOAD_PORT";
     public static String KEY_UPLOAD_TIME = "KEY_UPLOAD_TIME";
+    public static String KEY_ISDAEMON = "KEY_ISDAEMON";
 
 
     public static String DEFAULT_DEVICE = "";
@@ -67,7 +68,7 @@ public class Storage {
 
     }
 
-    public static void saveUploadData(Context context, String uploadServer, int port,int uploadTime) {
+    public static void saveUploadData(Context context, String uploadServer, int port, int uploadTime) {
         SharedPreferences sp = getPre(context);
         Editor editor = sp.edit();
         editor.putString(KEY_UPLOAD_SERVER, uploadServer);
@@ -77,16 +78,31 @@ public class Storage {
 
     }
 
+    public static void saveIsDaemon(Context context, boolean isDaemon) {
+        SharedPreferences sp = getPre(context);
+        Editor editor = sp.edit();
+        editor.putBoolean(KEY_ISDAEMON, isDaemon);
+        editor.apply();
+
+    }
+
+    public static boolean getIsDaemon(Context context) {
+        SharedPreferences sp = getPre(context);
+
+       return sp.getBoolean(KEY_ISDAEMON, true);
+
+    }
+
     public static ConfigBean getData(Context context) {
         SharedPreferences sp = getPre(context);
 
-        return new ConfigBean(sp.getString(KEY_NTRIP_SERVER, "203.107.45.154"),
-                sp.getInt(KEY_NTRIP_PORT, 8002),
-                sp.getString(KEY_NTRIP_MOUNT, "AUTO"),
-                sp.getString(KEY_NTRIP_USERNAME, "qxwfly001"),
-                sp.getString(KEY_NTRIP_PASS, "bcafdc8"),
-                sp.getString(KEY_UPLOAD_SERVER, ""),
-                sp.getInt(KEY_UPLOAD_PORT, 3333),
+        return new ConfigBean(sp.getString(KEY_NTRIP_SERVER, "103.46.128.45"),
+                sp.getInt(KEY_NTRIP_PORT, 24142),
+                sp.getString(KEY_NTRIP_MOUNT, "BUCU0"),
+                sp.getString(KEY_NTRIP_USERNAME, "test"),
+                sp.getString(KEY_NTRIP_PASS, "test"),
+                sp.getString(KEY_UPLOAD_SERVER, "103.46.128.45"),
+                sp.getInt(KEY_UPLOAD_PORT, 24142),
                 sp.getInt(KEY_UPLOAD_TIME, 2));
     }
 

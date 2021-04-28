@@ -37,7 +37,8 @@ public class WorkService extends Service {
     /**
      * 模拟gpgga 发送给ntrip
      */
-    public static final boolean mokeGpgga = true;
+    public static final boolean mockGpgga = false;
+    public  boolean mockUpload = false;
     String currentFixNmea;
     String currentNmea;
     private final WorkBinder workBinder = new WorkBinder();
@@ -125,6 +126,15 @@ public class WorkService extends Service {
         }
     }
 
+    public void switchUploadGpgga(boolean upload) {
+        if (upload) {
+            startNtripTimer(2000);
+        } else {
+            cancleNtripTimer();
+        }
+
+    }
+
     ConfigBean ntripconfigData, uploadConfig;
 
     /**
@@ -132,7 +142,7 @@ public class WorkService extends Service {
      *
      * @param bean
      */
-    public void setNtipConfigData(ConfigBean bean) {
+    public void setNtipConfigData(ConfigBean bean, boolean uploadGga) {
         ntripconfigData = bean;
         ntripManager.setServer(bean);
         ntripManager.setCallBack(new NtripCallBack() {
@@ -151,12 +161,18 @@ public class WorkService extends Service {
             @Override
             public void onConnected() {
                 serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_OK, null);
-                startNtripTimer(2000);
+                if (uploadGga)
+                    startNtripTimer(2000);
             }
 
             @Override
             public void onDisConnect(String error) {
                 serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_ERROR, error);
+            }
+
+            @Override
+            public void onReceiveDebug(String error) {
+                serviceCallBack.ntripDebugData(error);
             }
         });
         ntripManager.connectServer();
@@ -193,15 +209,25 @@ public class WorkService extends Service {
     Timer upLoadTimer, sendNtripTimer;
     TimerTask upLoadTimerTask, sendNtripTask;
 
+    public void setMockUpload(boolean mockUpload) {
+        this.mockUpload = mockUpload;
+    }
+
     public void StartUploadData(long frequence) {
         cancleUploadTimer();
         upLoadTimer = new Timer();
         upLoadTimerTask = new TimerTask() {
             @Override
             public void run() {
-                if (!TextUtils.isEmpty(currentFixNmea)) {
+                String data;
+                if (mockUpload) {
+                    data = Utils.GenerateGGAFromLatLon();
+                } else {
+                    data = currentFixNmea;
+                }
+                if (!TextUtils.isEmpty(data)) {
                     try {
-                        netManager.writeDirect(currentFixNmea, getBattery());
+                        netManager.writeDirect(data, getBattery());
                     } catch (IOException e) {
                         Logs.w("写入net数据异常");
                         e.printStackTrace();
@@ -219,7 +245,7 @@ public class WorkService extends Service {
             @Override
             public void run() {
                 //todo 测试模拟数据
-                if (mokeGpgga) {
+                if (mockGpgga) {
                     ntripManager.sendGPGGA(Utils.GenerateGGAFromLatLon());
                     return;
                 }

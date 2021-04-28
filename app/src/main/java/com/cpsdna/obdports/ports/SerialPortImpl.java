@@ -21,10 +21,10 @@ import java.io.OutputStream;
 public class SerialPortImpl extends AbstractPort {
 
 
-//    public static final String TEST_DEVICE = "/dev/ttyS0";
-//    public static final int TEST_BAUDRATE = 115200;
-    public static final String TEST_DEVICE = "/dev/ttyMT0";
-    public static final int TEST_BAUDRATE = 19200;
+    public static final String TEST_DEVICE = "/dev/ttyS0";
+    public static final int TEST_BAUDRATE = 115200;
+//    public static final String TEST_DEVICE = "/dev/ttyMT0";
+//    public static final int TEST_BAUDRATE = 19200;
 
     Context mContext;
     DNASerialPort DNASerialPort;

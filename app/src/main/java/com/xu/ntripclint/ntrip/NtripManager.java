@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -232,6 +233,8 @@ public class NtripManager implements INtrip {
     private void parseNetworkDataStream(byte[] buffer) {
         if (NetworkDataMode == 0) {
             NTRIPResponse += new String(buffer);
+            callBack.onReceiveDebug(NTRIPResponse);
+            Log.d("xuxu","NTRIP receive"+NTRIPResponse);
             if (NTRIPResponse.startsWith("ICY 200 OK")) {
                 callBack.onConnected();
 //                if (NTRIPStreamRequiresGGA) {
@@ -252,7 +255,7 @@ public class NtripManager implements INtrip {
                 // CheckIfDownloadedSourceTableIsComplete();
             } else if (NTRIPResponse.length() > 1024) { // We've received 1KB of data but no start command. WTF?
                 Logs.d("NTRIP: Unrecognized server response:");
-                Logs.d(NTRIPResponse);
+                Log.d("NTRIP","NTRIP big data:"+NTRIPResponse);
                 TerminateNTRIPThread("NTRIP接收文件错误");
             }
         } else if (NetworkDataMode == 1) { // Save SourceTable
@@ -332,7 +335,7 @@ public class NtripManager implements INtrip {
                 onTimerTick();
             }
         };
-        timer.scheduleAtFixedRate(timerTask, 0, 1000L);
+        timer.scheduleAtFixedRate(timerTask, 0, 5000L);
     }
 
     private void onTimerTick() {
@@ -340,6 +343,7 @@ public class NtripManager implements INtrip {
             Runnable clint = new NetworkClient(server, port, mountPoint, userName, userPass);
             nThread = new Thread(clint);
             nThread.start();
+            NTRIPResponse="";
             NetworkIsConnected = true;
             NetworkDataMode=0;
         }
