@@ -10,6 +10,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.cpsdna.obdports.ports.UtilityTools;
 import com.xu.ntripclint.pojo.ConfigBean;
 import com.xu.ntripclint.utils.Logs;
 
@@ -237,28 +238,29 @@ public class NtripManager implements INtrip {
 
     /*
     上报数据
+    $GPGGA,104437.00,3209.9647671,N,11842.0702220,E,1,15,0.9,34.6365,M,4.9226,M,8.0,0000*47
+048380
+"048380"分别为：
+0：自动发送
+48：0x48，发送计数为72；
+38：0x38，电量为56%；
+0：非第一帧与最后一帧数据
  */
     public void writeUploadData(String gpgga, int battery) {
 
-        byte[] temps = gpgga.getBytes();
-        byte[] data = new byte[temps.length + 4];
-        System.arraycopy(gpgga.getBytes(), 0, data, 0, temps.length);
-        byte mark = 0;
         count++;
         if (count > 255) {
             count = 0;
         }
-        byte packCount = (byte) (count & 0xff);
-        byte batteryByte = (byte) (battery & 0xff);
-        byte dataStatus = (byte) (isFristData & 0xff);
-        data[temps.length] = mark;
-        data[temps.length + 1] = packCount;
-        data[temps.length + 2] = batteryByte;
-        data[temps.length + 3] = dataStatus;
-        isFristData = 0;
         Message msg = dataHandler.obtainMessage(MSG_NETWORK_UPLOAD_DATA);
-        msg.obj = data;
+        String buffer = gpgga + "0" +
+                UtilityTools.byteToHex(count) +
+                UtilityTools.byteToHex(battery) +
+                isFristData + "";
+        Logs.d("ntrip upload ----"+buffer);
+        msg.obj = buffer.getBytes();
         dataHandler.sendMessage(msg);
+        isFristData = 0;
     }
 
     public void SendDataToNetwork(String cmd) {
