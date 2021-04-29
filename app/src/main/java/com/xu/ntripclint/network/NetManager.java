@@ -7,6 +7,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.cpsdna.obdports.ports.UtilityTools;
 import com.xu.ntripclint.utils.Logs;
 
 import java.io.ByteArrayOutputStream;
@@ -203,26 +204,19 @@ public final class NetManager {
         if (output == null)
             return;
         synchronized (LOCKER_WRITE) {
-            //拼接字符串
-            output.writeChars(gpgga);
-            byte mark = 0;
+
+            // output.write(data);
             if (count > 255) {
                 count = 0;
             }
-            byte packCount = (byte) (count & 0xff);
-            //标志位 0 定时发送 1手动
-            output.write(mark);
-            //计数 一个字节
-            output.write(packCount);
-            //电量百分比
-            byte batteryByte = (byte) (battery & 0xff);
-            output.write(batteryByte);
-            //自身状态
-            byte dataStatus = (byte) (isFristData & 0xff);
+            String buffer = gpgga + "0" +
+                    UtilityTools.byteToHex(count) +
+                    UtilityTools.byteToHex(battery) +
+                    isFristData + "";
+            Logs.d("net manager upload ----"+buffer);
+            output.write(buffer.getBytes());
             isFristData = 0;
-            output.write(dataStatus);
-
-            // output.write(data);
+            count++;
         }
     }
 }

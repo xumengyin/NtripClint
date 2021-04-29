@@ -248,7 +248,7 @@ public class NtripManager implements INtrip {
  */
     public void writeUploadData(String gpgga, int battery) {
 
-        count++;
+
         if (count > 255) {
             count = 0;
         }
@@ -261,6 +261,7 @@ public class NtripManager implements INtrip {
         msg.obj = buffer.getBytes();
         dataHandler.sendMessage(msg);
         isFristData = 0;
+        count++;
     }
 
     public void SendDataToNetwork(String cmd) {
