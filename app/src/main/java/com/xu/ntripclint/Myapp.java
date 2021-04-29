@@ -5,11 +5,10 @@ import android.app.Application;
 import com.xu.ntripclint.utils.CrashHandler;
 
 public class Myapp extends Application {
-
+    public static final boolean isRecorder=false;
     @Override
     public void onCreate() {
         super.onCreate();
-
 //        IntentFilter filter =new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 //        registerReceiver(new BroadcastReceiver() {
 //            @Override
@@ -17,8 +16,11 @@ public class Myapp extends Application {
 //
 //            }
 //        },);
+        if(isRecorder)
+        {
+            CrashHandler crashHandler = CrashHandler.getInstance();
+            crashHandler.init(this);
+        }
 
-        CrashHandler crashHandler = CrashHandler.getInstance();
-        crashHandler.init(this);
     }
 }
