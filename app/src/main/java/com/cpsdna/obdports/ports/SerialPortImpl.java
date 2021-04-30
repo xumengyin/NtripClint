@@ -71,8 +71,9 @@ public class SerialPortImpl extends AbstractPort {
                 if (callback != null) {
                     callback.onStart();
                 }
-                readThread = new ReadThread();
-                readThread.start();
+                //不要读串口 gps信息可以从串口或者定位api获取，读了串口 定位api就返回信息很慢
+//                readThread = new ReadThread();
+//                readThread.start();
             }
         } catch (SecurityException e) {
             Logs.e("串口打开失败");
@@ -177,10 +178,9 @@ public class SerialPortImpl extends AbstractPort {
             DataInputStream dInput = new DataInputStream(mInputStream);
             final byte[] content = new byte[1024];
             int read;
+            int head;
             while (!interrupted()) {
                 try {
-
-
                     // 获取内容
 
                     read = dInput.read(content);

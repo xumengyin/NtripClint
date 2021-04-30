@@ -22,7 +22,7 @@ class TestLocActivity : AppCompatActivity() {
     }
     val listener2 = object : LocManager.LocChangeNmeaLisener {
         override fun onLocationChanged(nmea: String?, time: Long) {
-            if (nmea!!.contains("GPGGA")) {
+            if (nmea!!.contains("GNGGA")) {
                 val result = nmea.split(",".toRegex()).toTypedArray()
                 if (result.size >= 11) {
                     var gpsText = ""
@@ -34,8 +34,8 @@ class TestLocActivity : AppCompatActivity() {
                             val lng =
                                 result[4].substring(0, 3).toDouble() + result[4]
                                     .substring(3).toDouble() / 60
-                            Logs.w("解析Gpgga经纬度:$lat::$lng")
-                            gpsText = "解析Gpgga经纬度:$lat::$lng"
+                            Logs.w("解析GNGGA经纬度:$lat::$lng")
+                            gpsText = "解析GNGGA经纬度:$lat::$lng"
                         }
                         Logs.w("解析Gpgga-----" + result[6].toInt())
                         gpsText += result[6] + "\n" + nmea

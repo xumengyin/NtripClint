@@ -8,8 +8,10 @@ import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
@@ -22,6 +24,7 @@ import com.xu.ntripclint.network.NetManager;
 import com.xu.ntripclint.ntrip.NtripCallBack;
 import com.xu.ntripclint.ntrip.NtripManager;
 import com.xu.ntripclint.pojo.ConfigBean;
+import com.xu.ntripclint.utils.FileLogUtils;
 import com.xu.ntripclint.utils.LocManager;
 import com.xu.ntripclint.utils.Logs;
 import com.xu.ntripclint.utils.Utils;
@@ -39,11 +42,16 @@ public class WorkService extends Service {
      */
     public static final boolean mockGpgga = false;
     public boolean mockUpload = false;
+    public boolean recorderLoc = false;
     //复用ntrip通道上传
     public boolean reUseNtripChanel = false;
     String currentFixNmea;
     String currentNmea;
     private final WorkBinder workBinder = new WorkBinder();
+
+    HandlerThread recorderHandThread=new HandlerThread("recorderHandThread");
+    Handler recorderHandler;
+
     private NetManager netManager;
     private NtripManager ntripManager = NtripManager.getInstance();
     private OBDManager obdManager;
@@ -59,7 +67,8 @@ public class WorkService extends Service {
     private final LocManager.LocChangeNmeaLisener nemaLisener = new LocManager.LocChangeNmeaLisener() {
         @Override
         public void onLocationChanged(String nmea, long time) {
-            if (nmea.contains("GPGGA")) {
+            Logs.w("leame data:"+nmea);
+            if (nmea.contains("GNGGA")) {
                 String[] result = nmea.split(",");
                 if (result.length >= 11) {
                     try {
@@ -67,13 +76,18 @@ public class WorkService extends Service {
                             double lat = Double.parseDouble(result[2].substring(0, 2)) + (Double.parseDouble(result[2].substring(2)) / 60);
                             double lng = Double.parseDouble(result[4].substring(0, 3)) + (Double.parseDouble(result[4].substring(3)) / 60);
                             // Logs.w("解析Gpgga经纬度:" + lat + "::" + lng);
+                            int status = Integer.parseInt(result[6]);
+                            String gpsStats=status+" "+GetnSolutionState(status);
+                            Logs.w("解析GNGGA-----" +nmea+"---"+ gpsStats);
+                            //是差分解
+                            //if (status == 2) {
+                                currentFixNmea = nmea;
+                                if(serviceCallBack!=null)
+                                    serviceCallBack.onNmeaRecieve(nmea,lat,lng,gpsStats);
+
+                            //}
                         }
-                        int status = Integer.parseInt(result[6]);
-                        //Logs.w("解析Gpgga-----" +nmea+"---"+ GetnSolutionState(status));
-                        //是差分解
-                        if (status == 2) {
-                            currentFixNmea = nmea;
-                        }
+
                         currentNmea = nmea;
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -81,12 +95,22 @@ public class WorkService extends Service {
 
                 }
             }
+            if(recorderLoc)
+            {
+                Message message = recorderHandler.obtainMessage();
+                message.obj=nmea;
+                recorderHandler.sendMessage(message);
+            }
         }
     };
     IServiceCallBack serviceCallBack;
 
     public void setServiceCallBack(IServiceCallBack callBack) {
         serviceCallBack = callBack;
+    }
+
+    public void setRecorderLoc(boolean recorderLoc) {
+        this.recorderLoc = recorderLoc;
     }
 
     private String GetnSolutionState(int nType) {
@@ -121,6 +145,18 @@ public class WorkService extends Service {
     }
 
 
+    private void initRecorderHandler()
+    {
+        recorderHandThread.start();
+        recorderHandler=new Handler(recorderHandThread.getLooper())
+        {
+            @Override
+            public void handleMessage(Message msg) {
+                String obj = (String) msg.obj;
+                FileLogUtils.writeLogtoFile(obj);
+            }
+        };
+    }
     public class WorkBinder extends Binder {
 
         public WorkService getService() {
@@ -317,16 +353,18 @@ public class WorkService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(110, new Notification());
         }
+        initRecorderHandler();
         obdManager = OBDManager.getInstance(this);
         netManager = NetManager.getInstance(this);
         LocManager locManager = LocManager.getInstance(getApplicationContext());
         locManager.addListener(locChangeLisener);
         locManager.addListener(nemaLisener);
-        locManager.openLocation(2000, 0);
+        locManager.openLocation(0, 0);
         obdManager.setCallBack(new OBDCallBack() {
             @Override
             protected void onReceive(byte[] allData) {
-                Logs.e("接收串口数据" + UtilityTools.bytesToHexString(allData));
+                String str =new String(allData);
+                Logs.e("接收串口数据" + str);
             }
 
             @Override
@@ -369,6 +407,7 @@ public class WorkService extends Service {
         obdManager.close();
         ntripManager.disconnectServer();
         netManager.close();
+        recorderHandThread.quitSafely();
 
     }
 }

@@ -18,6 +18,7 @@ import com.tbruyelle.rxpermissions3.RxPermissions
 import com.xu.ntripclint.network.NetManager
 import com.xu.ntripclint.ntrip.NtripManager
 import com.xu.ntripclint.pojo.ConfigBean
+import com.xu.ntripclint.utils.FileLogUtils
 import com.xu.ntripclint.utils.Logs
 import com.xu.ntripclint.utils.Storage
 import kotlinx.android.synthetic.main.activity_main.*
@@ -50,6 +51,17 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     }
+
+                    override fun onNmeaRecieve(data: String?, lat: Double, lng: Double,gpsS:String) {
+                        data?.apply {
+                            //解析 经纬度展示
+                            vLat.text="经度:"+lat
+                            vLng.text="纬度:"+lng
+                            vGpsStatus.text=gpsS
+                            vNmeaData.text=data
+                        }
+                    }
+
 
                     override fun onNetStatus(status: Int) {
                         runOnUiThread {
@@ -163,6 +175,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private fun initView() {
+
+        vSaveLoc.setOnCheckedChangeListener { buttonView, isChecked ->
+            service?.setRecorderLoc(isChecked)
+        }
         vCheckService.setOnCheckedChangeListener { buttonView, isChecked ->
 
                 Storage.saveIsDaemon(this@MainActivity,isChecked)
@@ -181,6 +197,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+        vSaveLoc.setText("信息存储${FileLogUtils.dirLoc}")
         vConnectNtrip.setOnClickListener {
             val server = vNtripServer.text.toString()
             val port = vPort.text.toString()

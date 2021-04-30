@@ -93,14 +93,25 @@ public class Storage {
 
     }
 
+    private static String testServer="103.46.128.45";
+    private static String testMount="BUCU0";
+    private static String testUsername="test";
+    private static String testPass="test";
+    private static int testport=24142;
+
+    private static String testServer2="203.107.45.154";
+    private static String testMount2="AUTO";
+    private static String testUsername2="qxwfwc001";
+    private static String testPass2="8fb6d7d";
+    private static int testport2=8002;
     public static ConfigBean getData(Context context) {
         SharedPreferences sp = getPre(context);
 
-        return new ConfigBean(sp.getString(KEY_NTRIP_SERVER, "103.46.128.45"),
-                sp.getInt(KEY_NTRIP_PORT, 24142),
-                sp.getString(KEY_NTRIP_MOUNT, "BUCU0"),
-                sp.getString(KEY_NTRIP_USERNAME, "test"),
-                sp.getString(KEY_NTRIP_PASS, "test"),
+        return new ConfigBean(sp.getString(KEY_NTRIP_SERVER,testServer),
+                sp.getInt(KEY_NTRIP_PORT, testport),
+                sp.getString(KEY_NTRIP_MOUNT,testMount),
+                sp.getString(KEY_NTRIP_USERNAME,testUsername),
+                sp.getString(KEY_NTRIP_PASS, testPass),
                 sp.getString(KEY_UPLOAD_SERVER, "103.46.128.45"),
                 sp.getInt(KEY_UPLOAD_PORT, 24142),
                 sp.getInt(KEY_UPLOAD_TIME, 2));

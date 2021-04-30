@@ -11,4 +11,6 @@ public interface IServiceCallBack {
     void onNtripStatus(int status,String error);
 
     void ntripDebugData(String data);
+
+    void onNmeaRecieve(String data,double lat,double lng,String gpsStatus);
 }
