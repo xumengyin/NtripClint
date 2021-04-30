@@ -246,7 +246,15 @@ class MainActivity : AppCompatActivity() {
                 //需求 如果和ntrip服务器一样 就复用ntrip的连接
                 if(uploadServer == server && uploadServerport == port)
                 {
-                    service?.reuseNtripChanel(config)
+                    service?.apply {
+                        Storage.saveUploadData(
+                            this@MainActivity,
+                            uploadServer,
+                            uploadServerport.toInt(),
+                            frequence.toInt()
+                        )
+                        reuseNtripChanel(config)
+                    }
                 }else
                 {
                     service?.apply {
