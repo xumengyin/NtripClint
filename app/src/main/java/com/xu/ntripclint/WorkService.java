@@ -27,9 +27,11 @@ import com.xu.ntripclint.pojo.ConfigBean;
 import com.xu.ntripclint.utils.FileLogUtils;
 import com.xu.ntripclint.utils.LocManager;
 import com.xu.ntripclint.utils.Logs;
+import com.xu.ntripclint.utils.Storage;
 import com.xu.ntripclint.utils.Utils;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -37,6 +39,10 @@ import java.util.TimerTask;
  *
  */
 public class WorkService extends Service {
+    /**
+     * 开机启动的配置
+     */
+    public static final String START_TAG="START_TAG";
     /**
      * 模拟gpgga 发送给ntrip
      */
@@ -198,18 +204,21 @@ public class WorkService extends Service {
 
             @Override
             public void onConnected() {
-                serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_OK, null);
+                if(serviceCallBack!=null)
+                    serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_OK, null);
                 if (uploadGga)
                     startNtripTimer(2000);
             }
 
             @Override
             public void onDisConnect(String error) {
+                if(serviceCallBack!=null)
                 serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_ERROR, error);
             }
 
             @Override
             public void onReceiveDebug(String error) {
+                if(serviceCallBack!=null)
                 serviceCallBack.ntripDebugData(error);
             }
         });
@@ -228,11 +237,13 @@ public class WorkService extends Service {
         netManager.start(new NetCallback() {
             @Override
             protected void onConnected() {
+                if(serviceCallBack!=null)
                 serviceCallBack.onNetStatus(IServiceCallBack.STATUS_OK);
             }
 
             @Override
             protected void ondisConnect() {
+                if(serviceCallBack!=null)
                 serviceCallBack.onNetStatus(IServiceCallBack.STATUS_ERROR);
             }
 
@@ -252,6 +263,7 @@ public class WorkService extends Service {
     public void reuseNtripChanel(ConfigBean bean) {
         reUseNtripChanel = true;
         uploadConfig=bean;
+        if(serviceCallBack!=null)
         serviceCallBack.onNetStatus(IServiceCallBack.STATUS_OK);
         StartUploadData(uploadConfig.uploadTime * 1000);
     }
@@ -394,6 +406,19 @@ public class WorkService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        boolean booleanExtra = intent.getBooleanExtra(START_TAG, false);
+        if(booleanExtra)
+        {
+            ConfigBean configBean = Storage.getData(this);
+            setNtipConfigData(configBean,false);
+            if(Objects.equals(configBean.ntripServer,configBean.uploadServer)&&configBean.uploadPort==configBean.ntripServerPort)
+            {
+                reuseNtripChanel(configBean);
+            }else
+            {
+                setUploadConfigData(configBean);
+            }
+        }
         return Service.START_REDELIVER_INTENT;
     }
 

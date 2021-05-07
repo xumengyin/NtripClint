@@ -99,15 +99,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun updateView() {
+        val dataBean = Storage.getData(this)
         if (OBDManager.getInstance(applicationContext).isConnected) {
             vSerialPortStatus.text = "串口连接ok"
         } else {
             vSerialPortStatus.text = "串口连接失败"
         }
-        if (NetManager.getInstance(applicationContext).isStarted) {
-            vUploadStatus.text = "上传服务器连接ok"
-        } else {
-            vUploadStatus.text = "上传服务器连接失败"
+        if(dataBean.ntripServer==dataBean.uploadServer&&dataBean.ntripServerPort==dataBean.uploadPort)
+        {
+            if (NtripManager.getInstance().isNetworkIsConnected) {
+                vUploadStatus.text = "上传服务器连接ok"
+            } else {
+                vUploadStatus.text = "上传服务器连接失败"
+            }
+        }else
+        {
+            if (NetManager.getInstance(applicationContext).isStarted) {
+                vUploadStatus.text = "上传服务器连接ok"
+            } else {
+                vUploadStatus.text = "上传服务器连接失败"
+            }
         }
         if (NtripManager.getInstance().isNetworkIsConnected) {
             vNtripStatus.text = "ntrip连接ok"

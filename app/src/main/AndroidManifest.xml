@@ -6,20 +6,19 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <uses-feature android:name="android.hardware.location.gps" />
     <application
-        android:allowBackup="true"
         android:name=".Myapp"
+        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".TestLocActivity"></activity>
+        <activity android:name=".TestLocActivity" />
         <!-- <activity -->
         <!-- android:name=".test.MainActivity" -->
         <!-- android:label="@string/app_name" -->
@@ -41,6 +40,16 @@
         </activity> <!-- <activity android:name="EditPreferences" android:label="@string/app_name_settings"></activity> -->
         <service android:name=".ntrip.NTRIPService" />
         <service android:name=".WorkService" />
+
+        <receiver
+            android:name=".MyBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
