@@ -360,6 +360,7 @@ public class WorkService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        FileLogUtils.writeLogtoFile("service onCreate");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(110, new Notification());
         }
@@ -437,6 +438,6 @@ public class WorkService extends Service {
         ntripManager.disconnectServer();
         netManager.close();
         recorderHandThread.quitSafely();
-
+        FileLogUtils.writeLogtoFile("service onDestroy");
     }
 }
