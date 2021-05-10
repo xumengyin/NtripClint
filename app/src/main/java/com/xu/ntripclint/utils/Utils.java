@@ -108,6 +108,7 @@ public class Utils {
         }
         return isIgnoring;
     }
+    //暂时不要
 //    @RequiresApi(api = Build.VERSION_CODES.M)
 //    public void requestIgnoreBatteryOptimizations() {
 //        try {
