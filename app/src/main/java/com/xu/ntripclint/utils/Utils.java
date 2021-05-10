@@ -1,5 +1,11 @@
 package com.xu.ntripclint.utils;
 
+import android.content.Context;
+import android.os.Build;
+import android.os.PowerManager;
+
+import androidx.annotation.RequiresApi;
+
 public class Utils {
 
     //118.809563,32.023878
@@ -80,7 +86,7 @@ public class Utils {
         //Log.i("Manual GGA", "$" + gga + "*" + checksum);
         return "$" + gga + "*" + checksum;
     }
-    private static String CalculateChecksum(String line) {
+    public static String CalculateChecksum(String line) {
         int chk = 0;
         for (int i = 0; i < line.length(); i++) {
             chk ^= line.charAt(i);
@@ -91,4 +97,25 @@ public class Utils {
         }
         return chk_s;
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public static boolean isIgnoringBatteryOptimizations(Context context) {
+        boolean isIgnoring = false;
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+
+        if (powerManager != null) {
+            isIgnoring = powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
+        }
+        return isIgnoring;
+    }
+//    @RequiresApi(api = Build.VERSION_CODES.M)
+//    public void requestIgnoreBatteryOptimizations() {
+//        try {
+//            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+//            intent.setData(Uri.parse("package:" + getPackageName()));
+//            startActivity(intent);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

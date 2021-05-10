@@ -21,6 +21,7 @@ import com.xu.ntripclint.pojo.ConfigBean
 import com.xu.ntripclint.utils.FileLogUtils
 import com.xu.ntripclint.utils.Logs
 import com.xu.ntripclint.utils.Storage
+import com.xu.ntripclint.utils.Utils
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -140,6 +141,12 @@ class MainActivity : AppCompatActivity() {
         val value3 = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
         val value4 = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);///当前电量百分比
         Log.d("xuxux", "test: ${value1}--${value2}--${value3}--${value4}")
+        val inWhitelIst= if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Utils.isIgnoringBatteryOptimizations(this)
+        } else {
+            false
+        }
+        Log.d("xuxux", "white list ${inWhitelIst}")
         // manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS);///充电状态
     }
 

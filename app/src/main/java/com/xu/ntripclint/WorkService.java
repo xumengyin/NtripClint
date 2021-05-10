@@ -42,7 +42,7 @@ public class WorkService extends Service {
     /**
      * 开机启动的配置
      */
-    public static final String START_TAG="START_TAG";
+    public static final String START_TAG = "START_TAG";
     /**
      * 模拟gpgga 发送给ntrip
      */
@@ -55,7 +55,7 @@ public class WorkService extends Service {
     String currentNmea;
     private final WorkBinder workBinder = new WorkBinder();
 
-    HandlerThread recorderHandThread=new HandlerThread("recorderHandThread");
+    HandlerThread recorderHandThread = new HandlerThread("recorderHandThread");
     Handler recorderHandler;
 
     private NetManager netManager;
@@ -73,7 +73,7 @@ public class WorkService extends Service {
     private final LocManager.LocChangeNmeaLisener nemaLisener = new LocManager.LocChangeNmeaLisener() {
         @Override
         public void onLocationChanged(String nmea, long time) {
-            Logs.w("leame data:"+nmea);
+            Logs.w("leame data:" + nmea);
             if (nmea.contains("GNGGA")) {
                 String[] result = nmea.split(",");
                 if (result.length >= 11) {
@@ -83,13 +83,13 @@ public class WorkService extends Service {
                             double lng = Double.parseDouble(result[4].substring(0, 3)) + (Double.parseDouble(result[4].substring(3)) / 60);
                             // Logs.w("解析Gpgga经纬度:" + lat + "::" + lng);
                             int status = Integer.parseInt(result[6]);
-                            String gpsStats=status+" "+GetnSolutionState(status);
-                            Logs.w("解析GNGGA-----" +nmea+"---"+ gpsStats);
+                            String gpsStats = status + " " + GetnSolutionState(status);
+                            Logs.w("解析GNGGA-----" + nmea + "---" + gpsStats);
                             //是差分解
                             //if (status == 2) {
-                                currentFixNmea = nmea;
-                                if(serviceCallBack!=null)
-                                    serviceCallBack.onNmeaRecieve(nmea,lat,lng,gpsStats);
+                            currentFixNmea = nmea;
+                            if (serviceCallBack != null)
+                                serviceCallBack.onNmeaRecieve(nmea, lat, lng, gpsStats);
 
                             //}
                         }
@@ -101,10 +101,9 @@ public class WorkService extends Service {
 
                 }
             }
-            if(recorderLoc)
-            {
+            if (recorderLoc) {
                 Message message = recorderHandler.obtainMessage();
-                message.obj=nmea;
+                message.obj = nmea;
                 recorderHandler.sendMessage(message);
             }
         }
@@ -151,11 +150,9 @@ public class WorkService extends Service {
     }
 
 
-    private void initRecorderHandler()
-    {
+    private void initRecorderHandler() {
         recorderHandThread.start();
-        recorderHandler=new Handler(recorderHandThread.getLooper())
-        {
+        recorderHandler = new Handler(recorderHandThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 String obj = (String) msg.obj;
@@ -163,6 +160,7 @@ public class WorkService extends Service {
             }
         };
     }
+
     public class WorkBinder extends Binder {
 
         public WorkService getService() {
@@ -204,7 +202,7 @@ public class WorkService extends Service {
 
             @Override
             public void onConnected() {
-                if(serviceCallBack!=null)
+                if (serviceCallBack != null)
                     serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_OK, null);
                 if (uploadGga)
                     startNtripTimer(2000);
@@ -212,14 +210,14 @@ public class WorkService extends Service {
 
             @Override
             public void onDisConnect(String error) {
-                if(serviceCallBack!=null)
-                serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_ERROR, error);
+                if (serviceCallBack != null)
+                    serviceCallBack.onNtripStatus(IServiceCallBack.STATUS_ERROR, error);
             }
 
             @Override
             public void onReceiveDebug(String error) {
-                if(serviceCallBack!=null)
-                serviceCallBack.ntripDebugData(error);
+                if (serviceCallBack != null)
+                    serviceCallBack.ntripDebugData(error);
             }
         });
         ntripManager.connectServer();
@@ -231,20 +229,20 @@ public class WorkService extends Service {
      * @param bean
      */
     public void setUploadConfigData(ConfigBean bean) {
-        reUseNtripChanel=false;
+        reUseNtripChanel = false;
         uploadConfig = bean;
         netManager.setConfig(bean.uploadServer, bean.uploadPort);
         netManager.start(new NetCallback() {
             @Override
             protected void onConnected() {
-                if(serviceCallBack!=null)
-                serviceCallBack.onNetStatus(IServiceCallBack.STATUS_OK);
+                if (serviceCallBack != null)
+                    serviceCallBack.onNetStatus(IServiceCallBack.STATUS_OK);
             }
 
             @Override
             protected void ondisConnect() {
-                if(serviceCallBack!=null)
-                serviceCallBack.onNetStatus(IServiceCallBack.STATUS_ERROR);
+                if (serviceCallBack != null)
+                    serviceCallBack.onNetStatus(IServiceCallBack.STATUS_ERROR);
             }
 
             @Override
@@ -262,9 +260,9 @@ public class WorkService extends Service {
 
     public void reuseNtripChanel(ConfigBean bean) {
         reUseNtripChanel = true;
-        uploadConfig=bean;
-        if(serviceCallBack!=null)
-        serviceCallBack.onNetStatus(IServiceCallBack.STATUS_OK);
+        uploadConfig = bean;
+        if (serviceCallBack != null)
+            serviceCallBack.onNetStatus(IServiceCallBack.STATUS_OK);
         StartUploadData(uploadConfig.uploadTime * 1000);
     }
 
@@ -375,7 +373,7 @@ public class WorkService extends Service {
         obdManager.setCallBack(new OBDCallBack() {
             @Override
             protected void onReceive(byte[] allData) {
-                String str =new String(allData);
+                String str = new String(allData);
                 Logs.e("接收串口数据" + str);
             }
 
@@ -406,20 +404,26 @@ public class WorkService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        boolean booleanExtra = intent.getBooleanExtra(START_TAG, false);
-        if(booleanExtra)
-        {
-            ConfigBean configBean = Storage.getData(this);
-            setNtipConfigData(configBean,false);
-            if(Objects.equals(configBean.ntripServer,configBean.uploadServer)&&configBean.uploadPort==configBean.ntripServerPort)
-            {
-                reuseNtripChanel(configBean);
-            }else
-            {
-                setUploadConfigData(configBean);
+        if (intent != null) {
+            boolean booleanExtra = intent.getBooleanExtra(START_TAG, false);
+            if (booleanExtra) {
+                startAll();
             }
+        } else {
+            startAll();
         }
-        return Service.START_REDELIVER_INTENT;
+        startForeground(101, new Notification());
+        return Service.START_STICKY;
+    }
+
+    private void startAll() {
+        ConfigBean configBean = Storage.getData(this);
+        setNtipConfigData(configBean, false);
+        if (Objects.equals(configBean.ntripServer, configBean.uploadServer) && configBean.uploadPort == configBean.ntripServerPort) {
+            reuseNtripChanel(configBean);
+        } else {
+            setUploadConfigData(configBean);
+        }
     }
 
     @Override
