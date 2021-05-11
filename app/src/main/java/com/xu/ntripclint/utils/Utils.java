@@ -110,8 +110,9 @@ public class Utils {
         ComponentName componentName = new ComponentName(context, DamenService.class);
         JobInfo.Builder builder = new JobInfo.Builder(99,componentName);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            builder.setMinimumLatency(10 * 1000);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            builder.setMinimumLatency(20 * 1000);
+            builder.setOverrideDeadline(25 * 1000);
         } else {
             builder.setPeriodic( 10 * 1000);
         }

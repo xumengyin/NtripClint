@@ -8,6 +8,7 @@ import android.content.Intent;
 
 import com.xu.ntripclint.utils.FileLogUtils;
 import com.xu.ntripclint.utils.Logs;
+import com.xu.ntripclint.utils.Utils;
 
 public class DamenService extends JobService {
     @Override
@@ -26,7 +27,7 @@ public class DamenService extends JobService {
     public boolean onStartJob(JobParameters params) {
 
         Logs.d("DamenService onStartJob---------");
-        FileLogUtils.writeLogtoFile("DamenService onStartJob");
+       // FileLogUtils.writeLogtoFile("DamenService onStartJob");
         if(!isServiceRunning(WorkService.class))
         {
             FileLogUtils.writeLogtoFile("DamenService ServiceNNNNNNNRunning");
@@ -35,8 +36,11 @@ public class DamenService extends JobService {
             startService(intent);
         }else
         {
-            FileLogUtils.writeLogtoFile("DamenService ServiceRunning");
+           // FileLogUtils.writeLogtoFile("DamenService ServiceRunning");
         }
+
+        Utils.jobSchedule(this);
+
        // jobFinished(params, false);
         return false;
     }
