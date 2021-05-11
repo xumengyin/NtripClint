@@ -1,26 +1,32 @@
 package com.xu.ntripclint.utils;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.os.Build;
 import android.os.PowerManager;
 
 import androidx.annotation.RequiresApi;
 
+import com.xu.ntripclint.DamenService;
+
 public class Utils {
 
     //118.809563,32.023878
     private static final Double ManualLat = 32.023878;
     private static final Double ManualLon = 118.809563;
+
     public static String GenerateGGAFromLatLon() {
         String gga = "GPGGA,000001,";
 
         double posnum = Math.abs(ManualLat);
         double latmins = posnum % 1;
-        int ggahours = (int)(posnum - latmins);
+        int ggahours = (int) (posnum - latmins);
         latmins = latmins * 60;
         double latfracmins = latmins % 1;
-        int ggamins = (int)(latmins - latfracmins);
-        int ggafracmins = (int)(latfracmins * 10000);
+        int ggamins = (int) (latmins - latfracmins);
+        int ggafracmins = (int) (latfracmins * 10000);
         ggahours = ggahours * 100 + ggamins;
         if (ggahours < 1000) {
             gga += "0";
@@ -47,11 +53,11 @@ public class Utils {
 
         posnum = Math.abs(ManualLon);
         latmins = posnum % 1;
-        ggahours = (int)(posnum - latmins);
+        ggahours = (int) (posnum - latmins);
         latmins = latmins * 60;
         latfracmins = latmins % 1;
-        ggamins = (int)(latmins - latfracmins);
-        ggafracmins = (int)(latfracmins * 10000);
+        ggamins = (int) (latmins - latfracmins);
+        ggafracmins = (int) (latfracmins * 10000);
         ggahours = ggahours * 100 + ggamins;
         if (ggahours < 10000) {
             gga += "0";
@@ -86,6 +92,7 @@ public class Utils {
         //Log.i("Manual GGA", "$" + gga + "*" + checksum);
         return "$" + gga + "*" + checksum;
     }
+
     public static String CalculateChecksum(String line) {
         int chk = 0;
         for (int i = 0; i < line.length(); i++) {
@@ -98,6 +105,21 @@ public class Utils {
         return chk_s;
     }
 
+    public static void jobSchedule(Context context) {
+        JobScheduler mJobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        ComponentName componentName = new ComponentName(context, DamenService.class);
+        JobInfo.Builder builder = new JobInfo.Builder(99,componentName);
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            builder.setMinimumLatency(10 * 1000);
+        } else {
+            builder.setPeriodic( 10 * 1000);
+        }
+        mJobScheduler.schedule(builder.build());
+    }
+
+
+    //是否在白名单
     @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean isIgnoringBatteryOptimizations(Context context) {
         boolean isIgnoring = false;

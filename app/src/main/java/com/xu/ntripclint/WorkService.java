@@ -357,6 +357,7 @@ public class WorkService extends Service {
 
     Handler mainHandler = new Handler(Looper.getMainLooper());
 
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -364,6 +365,7 @@ public class WorkService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(110, new Notification());
         }
+        Utils.jobSchedule(this);
         initRecorderHandler();
         obdManager = OBDManager.getInstance(this);
         netManager = NetManager.getInstance(this);

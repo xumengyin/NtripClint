@@ -191,6 +191,7 @@ public final class NetManager {
                 client.close();
                 client = null;
             }
+            if(netCallback!=null)
             netCallback.ondisConnect();
         } catch (Exception e) {
             e.printStackTrace();

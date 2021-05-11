@@ -40,7 +40,7 @@
         </activity> <!-- <activity android:name="EditPreferences" android:label="@string/app_name_settings"></activity> -->
         <service android:name=".ntrip.NTRIPService" />
         <service android:name=".WorkService" />
-
+        <service android:name=".DamenService" android:permission="android.permission.BIND_JOB_SERVICE"/>
         <receiver
             android:name=".MyBootReceiver"
             android:enabled="true"
