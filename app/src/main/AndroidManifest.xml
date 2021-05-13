@@ -8,8 +8,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <uses-feature android:name="android.hardware.location.gps" />
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:name=".Myapp"
         android:allowBackup="true"
@@ -18,8 +22,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".TestLocActivity" />
-        <!-- <activity -->
+        <activity android:name=".activity.SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.LivePxActivity"
+            android:theme="@style/LiveStyle" />
+        <activity android:name=".TestLocActivity" /> <!-- <activity -->
         <!-- android:name=".test.MainActivity" -->
         <!-- android:label="@string/app_name" -->
         <!-- android:theme="@style/AppTheme.NoActionBar"> -->
@@ -32,22 +45,27 @@
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity> <!-- <activity android:name="EditPreferences" android:label="@string/app_name_settings"></activity> -->
         <service android:name=".ntrip.NTRIPService" />
-        <service android:name=".WorkService" />
-        <service android:name=".DamenService" android:permission="android.permission.BIND_JOB_SERVICE"/>
+        <service
+            android:name=".WorkService"
+            android:exported="true" />
+        <service android:name=".AlarmService" />
+        <service
+            android:name=".DamenService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:process=":damen" />
+
         <receiver
             android:name=".MyBootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
     </application>

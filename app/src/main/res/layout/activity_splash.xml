@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.SplashActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="5dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/vLatlng"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="经纬度:"/>
+        <TextView
+            android:id="@+id/vNtrip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ntrip服务器:"/>
+        <TextView
+            android:id="@+id/vUploadServer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="上传服务器:"/>
+        <TextView
+            android:id="@+id/vSerialPort"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="串口:"/>
+
+
+        <Button
+            android:id="@+id/vSetting"
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:text="配置"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+</ScrollView>

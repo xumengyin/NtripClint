@@ -15,19 +15,21 @@ public class DamenService extends JobService {
     public void onCreate() {
         super.onCreate();
         Logs.d("DamenService onCreate---------");
+       // FileLogUtils.writeLogtoFile("DamenService onCreate---------");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         Logs.d("DamenService onDestroy---------");
+       // FileLogUtils.writeLogtoFile("DamenService onDestroy---------");
     }
 
     @Override
     public boolean onStartJob(JobParameters params) {
 
         Logs.d("DamenService onStartJob---------");
-       // FileLogUtils.writeLogtoFile("DamenService onStartJob");
+        FileLogUtils.writeLogtoFile("DamenService onStartJob");
         if(!isServiceRunning(WorkService.class))
         {
             FileLogUtils.writeLogtoFile("DamenService ServiceNNNNNNNRunning");

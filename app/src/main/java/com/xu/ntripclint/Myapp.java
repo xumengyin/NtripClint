@@ -5,7 +5,7 @@ import android.app.Application;
 import com.xu.ntripclint.utils.CrashHandler;
 
 public class Myapp extends Application {
-    public static final boolean isRecorder=true;
+    public static final boolean isRecorder=false;
     @Override
     public void onCreate() {
         super.onCreate();

@@ -1,15 +1,25 @@
 package com.xu.ntripclint.utils;
 
+import android.app.ActivityManager;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
+import android.os.SystemClock;
+import android.provider.Settings;
 
 import androidx.annotation.RequiresApi;
 
+import com.xu.ntripclint.AlarmService;
 import com.xu.ntripclint.DamenService;
+
+import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
 
 public class Utils {
 
@@ -108,13 +118,13 @@ public class Utils {
     public static void jobSchedule(Context context) {
         JobScheduler mJobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         ComponentName componentName = new ComponentName(context, DamenService.class);
-        JobInfo.Builder builder = new JobInfo.Builder(99,componentName);
+        JobInfo.Builder builder = new JobInfo.Builder(99, componentName);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             builder.setMinimumLatency(20 * 1000);
             builder.setOverrideDeadline(25 * 1000);
         } else {
-            builder.setPeriodic( 10 * 1000);
+            builder.setPeriodic(10 * 1000);
         }
         mJobScheduler.schedule(builder.build());
     }
@@ -131,15 +141,41 @@ public class Utils {
         }
         return isIgnoring;
     }
+
     //暂时不要
-//    @RequiresApi(api = Build.VERSION_CODES.M)
-//    public void requestIgnoreBatteryOptimizations() {
-//        try {
-//            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-//            intent.setData(Uri.parse("package:" + getPackageName()));
-//            startActivity(intent);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public static void requestIgnoreBatteryOptimizations(Context context) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + context.getPackageName()));
+            context.startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void getWake(Context context) {
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                "MyApp::MyWakelockTag");
+        wakeLock.acquire();
+    }
+
+    public static void alarmSchedule(Context context) {
+        AlarmManager alarmManager =
+                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, AlarmService.class);
+        PendingIntent pendingIntent =PendingIntent.getService(context,100,intent,FLAG_UPDATE_CURRENT);
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10*1000,20*1000,pendingIntent);
+//        alarmManager.setAndAllowWhileIdle();
+    }
+    public static boolean isServiceRunning(Class<?> serviceClass,Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo runningService : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(runningService.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

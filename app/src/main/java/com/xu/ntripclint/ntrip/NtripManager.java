@@ -65,6 +65,7 @@ public class NtripManager implements INtrip {
         }
     };
     volatile boolean NetworkIsConnected = false;
+    volatile boolean isConnectNtrip = false;
 
     public static NtripManager getInstance() {
         return manager;
@@ -295,6 +296,7 @@ public class NtripManager implements INtrip {
             Log.d("xuxu", "NTRIP receive" + NTRIPResponse);
             if (NTRIPResponse.startsWith("ICY 200 OK")) {
                 callBack.onConnected();
+                isConnectNtrip=true;
 //                if (NTRIPStreamRequiresGGA) {
                 NetworkDataMode = 99; // Put in to data mode
                 // todo  test
@@ -411,6 +413,9 @@ public class NtripManager implements INtrip {
     public boolean isNetworkIsConnected() {
         return NetworkIsConnected;
     }
+    public boolean isConnectedNtrip() {
+        return isConnectNtrip;
+    }
 
     private void cancleSechdule() {
         if (timerTask != null) {
@@ -472,7 +477,6 @@ public class NtripManager implements INtrip {
                     nos.write(requestmsg.getBytes());
                     //Log.i("Request", requestmsg);
 
-
                     //Log.i(NTAG, "Waiting for inital data...");
                     byte[] buffer = new byte[4096];
                     int read = nis.read(buffer, 0, 4096); // This is blocking
@@ -491,9 +495,14 @@ public class NtripManager implements INtrip {
                 e.printStackTrace();
             } finally {
                 try {
-                    nis.close();
-                    nos.close();
+                    if(nis!=null)
+                        nis.close();
+                    if(nos!=null)
+                        nos.close();
+                    if(nsocket!=null)
                     nsocket.close();
+
+                    isConnectNtrip=false;
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (Exception e) {

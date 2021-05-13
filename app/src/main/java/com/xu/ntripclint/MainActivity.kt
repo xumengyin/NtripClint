@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
         }
         if(dataBean.ntripServer==dataBean.uploadServer&&dataBean.ntripServerPort==dataBean.uploadPort)
         {
-            if (NtripManager.getInstance().isNetworkIsConnected) {
+            if (NtripManager.getInstance().isConnectedNtrip) {
                 vUploadStatus.text = "上传服务器连接ok"
             } else {
                 vUploadStatus.text = "上传服务器连接失败"
@@ -121,7 +121,7 @@ class MainActivity : AppCompatActivity() {
                 vUploadStatus.text = "上传服务器连接失败"
             }
         }
-        if (NtripManager.getInstance().isNetworkIsConnected) {
+        if (NtripManager.getInstance().isConnectedNtrip) {
             vNtripStatus.text = "ntrip连接ok"
         } else {
             vNtripStatus.text = "ntrip连接失败"
@@ -129,6 +129,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun test() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            Utils.requestIgnoreBatteryOptimizations(this)
+//        }
         testBtn.setOnClickListener {
             startActivity(Intent(this, TestLocActivity::class.java))
         }
@@ -173,11 +176,11 @@ class MainActivity : AppCompatActivity() {
         val isDeamon = Storage.getIsDaemon(this)
         val intent = Intent(this@MainActivity, WorkService::class.java)
 //        if (isDeamon) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                startForegroundService(intent)
+//            } else {
                 startService(intent)
-            }
+//            }
 //            demonServiceStart=true
 //        }
         bindService(intent, conn, Context.BIND_AUTO_CREATE)

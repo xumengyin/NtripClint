@@ -27,6 +27,8 @@ import com.xu.ntripclint.pojo.ConfigBean;
 import com.xu.ntripclint.utils.FileLogUtils;
 import com.xu.ntripclint.utils.LocManager;
 import com.xu.ntripclint.utils.Logs;
+import com.xu.ntripclint.utils.ScreenBroadcastListener;
+import com.xu.ntripclint.utils.ScreenManager;
 import com.xu.ntripclint.utils.Storage;
 import com.xu.ntripclint.utils.Utils;
 
@@ -43,6 +45,9 @@ public class WorkService extends Service {
      * 开机启动的配置
      */
     public static final String START_TAG = "START_TAG";
+
+
+    public static final String SELF_START = "SELF_START";
     /**
      * 模拟gpgga 发送给ntrip
      */
@@ -73,7 +78,7 @@ public class WorkService extends Service {
     private final LocManager.LocChangeNmeaLisener nemaLisener = new LocManager.LocChangeNmeaLisener() {
         @Override
         public void onLocationChanged(String nmea, long time) {
-            Logs.w("leame data:" + nmea);
+            Logs.w("leame data：" + nmea);
             if (nmea.contains("GNGGA")) {
                 String[] result = nmea.split(",");
                 if (result.length >= 11) {
@@ -358,15 +363,29 @@ public class WorkService extends Service {
     Handler mainHandler = new Handler(Looper.getMainLooper());
 
 
+    private void init1pxActivity()
+    {
+        final ScreenManager screenManager = ScreenManager.getInstance(this);
+        ScreenBroadcastListener listener = new ScreenBroadcastListener(this);
+        listener.registerListener(new ScreenBroadcastListener.ScreenStateListener() {
+            @Override
+            public void onScreenOn() {
+                screenManager.finishActivity();
+            }
+            @Override
+            public void onScreenOff() {
+                screenManager.startActivity();
+            }
+        });
+    }
     @Override
     public void onCreate() {
         super.onCreate();
-        FileLogUtils.writeLogtoFile("service onCreate");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(110, new Notification());
-        }
+        FileLogUtils.writeLogtoFile("service onCreate"+toString());
         Utils.jobSchedule(this);
+       // Utils.getWake(this);
         initRecorderHandler();
+       // init1pxActivity();
         obdManager = OBDManager.getInstance(this);
         netManager = NetManager.getInstance(this);
         LocManager locManager = LocManager.getInstance(getApplicationContext());
