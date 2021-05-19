@@ -1,4 +1,4 @@
-package com.cpsdna.obdports.ports;
+package com.xu.jniserialport;
 
 import android.content.Context;
 import android.os.Handler;
@@ -7,7 +7,6 @@ import android.os.Message;
 
 import com.xu.ntripclint.utils.Logs;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +26,7 @@ public class SerialPortImpl extends AbstractPort {
 //    public static final int TEST_BAUDRATE = 19200;
 
     Context mContext;
-    DNASerialPort DNASerialPort;
+    com.xu.jniserialport.DNASerialPort DNASerialPort;
     public OutputStream mOutputStream;
     InputStream mInputStream;
     ReadThread readThread;

@@ -7,10 +7,9 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.cpsdna.obdports.ports.UtilityTools;
+import com.xu.jniserialport.UtilityTools;
 import com.xu.ntripclint.utils.Logs;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

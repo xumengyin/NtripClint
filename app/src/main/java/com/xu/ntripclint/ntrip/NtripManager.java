@@ -10,7 +10,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.cpsdna.obdports.ports.UtilityTools;
+import com.xu.jniserialport.UtilityTools;
 import com.xu.ntripclint.pojo.ConfigBean;
 import com.xu.ntripclint.utils.Logs;
 

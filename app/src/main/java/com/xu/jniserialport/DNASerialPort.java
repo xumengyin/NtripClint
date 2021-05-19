@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.cpsdna.obdports.ports;
+package com.xu.jniserialport;
 
 import com.xu.ntripclint.utils.Logs;
 
@@ -95,7 +95,7 @@ public class DNASerialPort {
 
     static {
         try {
-            System.loadLibrary("dna-serial-port");
+            System.loadLibrary("DSerialPort");
         } catch (Throwable var1) {
             var1.printStackTrace();
         }

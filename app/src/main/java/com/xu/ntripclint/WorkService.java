@@ -16,9 +16,10 @@ import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
-import com.cpsdna.obdports.ports.OBDCallBack;
-import com.cpsdna.obdports.ports.OBDManager;
-import com.cpsdna.obdports.ports.UtilityTools;
+
+import com.xu.jniserialport.OBDCallBack;
+import com.xu.jniserialport.OBDManager;
+import com.xu.jniserialport.UtilityTools;
 import com.xu.ntripclint.network.NetCallback;
 import com.xu.ntripclint.network.NetManager;
 import com.xu.ntripclint.ntrip.NtripCallBack;

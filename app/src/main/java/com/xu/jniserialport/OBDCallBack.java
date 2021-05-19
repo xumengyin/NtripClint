@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.cpsdna.obdports.ports;
+package com.xu.jniserialport;
 
 /**
  *

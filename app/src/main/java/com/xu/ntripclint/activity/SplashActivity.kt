@@ -12,8 +12,8 @@ import android.os.Looper
 import android.text.TextUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.cpsdna.obdports.ports.OBDManager
 import com.tbruyelle.rxpermissions3.RxPermissions
+import com.xu.jniserialport.OBDManager
 import com.xu.ntripclint.IServiceCallBack
 import com.xu.ntripclint.MainActivity
 import com.xu.ntripclint.R

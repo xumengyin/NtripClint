@@ -1,6 +1,7 @@
 package com.xu.ntripclint;
 
-import com.cpsdna.obdports.ports.UtilityTools;
+
+import com.xu.jniserialport.UtilityTools;
 
 import org.junit.Test;
 

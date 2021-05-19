@@ -13,8 +13,8 @@ import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.cpsdna.obdports.ports.OBDManager
 import com.tbruyelle.rxpermissions3.RxPermissions
+import com.xu.jniserialport.OBDManager
 import com.xu.ntripclint.network.NetManager
 import com.xu.ntripclint.ntrip.NtripManager
 import com.xu.ntripclint.pojo.ConfigBean
