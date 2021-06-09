@@ -29,10 +29,10 @@ public class DamenService extends JobService {
     public boolean onStartJob(JobParameters params) {
 
         Logs.d("DamenService onStartJob---------");
-        FileLogUtils.writeLogtoFile("DamenService onStartJob");
+       // FileLogUtils.writeLogtoFile("DamenService onStartJob");
         if(!isServiceRunning(WorkService.class))
         {
-            FileLogUtils.writeLogtoFile("DamenService ServiceNNNNNNNRunning");
+           // FileLogUtils.writeLogtoFile("DamenService ServiceNNNNNNNRunning");
             Intent intent = new Intent(this, WorkService.class);
             intent.putExtra(WorkService.START_TAG, true);
             startService(intent);

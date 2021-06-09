@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.xu.jniserialport.UtilityTools;
+import com.xu.ntripclint.utils.FileLogUtils;
 import com.xu.ntripclint.utils.Logs;
 
 import java.io.DataInputStream;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
@@ -99,7 +101,7 @@ public final class NetManager {
     private void handleStart() {
         boolean shouldStart = isStarted;
         shouldQuit = false;
-        shouldReconnect=false;
+        shouldReconnect = false;
         if (!shouldStart && !isConnecting) {
             startImpl();
         } else {
@@ -135,7 +137,7 @@ public final class NetManager {
                     isStarted = true;
                     isConnecting = false;
                     if (shouldReconnect) {
-                        throw new Exception("需要重连");
+                        throw new Exception("net 需要重连");
                     }
                     byte[] temp = new byte[2048];
                     int read;
@@ -144,11 +146,20 @@ public final class NetManager {
                         System.arraycopy(temp, 0, tempData, 0, read);
                         netCallback.onReceive(tempData);
                     }
-                    throw new Exception("net 读到-1");
+                    throw new Exception("net数据 读到结尾-1");
                     //shouldReconnect=true;
+                } catch (SocketException e) {
+                    Logs.e("net Manager SocketException 稍后重连 e:" + e.getMessage());
+                    shouldReconnect = true;
+                    uploadNetERR("出现SocketException异常",e);
+                } catch (IOException e) {
+                    Logs.e("net Manager IOException 稍后重连 e:" + e.getMessage());
+                    uploadNetERR("出现IOException异常",e);
+                    shouldReconnect = true;
                 } catch (Exception e) {
                     Logs.e("net Manager Exception 稍后重连 e:" + e.getMessage());
                     shouldReconnect = true;
+                    uploadNetERR("",e);
                 } finally {
 //                    timer.cancel();
                     closeAll();
@@ -162,7 +173,11 @@ public final class NetManager {
         }.start();
     }
 
-
+    private void uploadNetERR(String err,Throwable throwable)
+    {
+        if(netCallback!=null)
+            netCallback.onUploadNetError(err,throwable);
+    }
     public void reConnect() {
         shouldReconnect = true;
         try {
@@ -190,8 +205,8 @@ public final class NetManager {
                 client.close();
                 client = null;
             }
-            if(netCallback!=null)
-            netCallback.ondisConnect();
+            if (netCallback != null)
+                netCallback.ondisConnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -213,7 +228,7 @@ public final class NetManager {
                     UtilityTools.byteToHex(count) +
                     UtilityTools.byteToHex(battery) +
                     isFristData + "";
-            Logs.d("net manager upload ----"+buffer);
+            Logs.d("net manager upload ----" + buffer);
             output.write(buffer.getBytes());
             isFristData = 0;
             count++;

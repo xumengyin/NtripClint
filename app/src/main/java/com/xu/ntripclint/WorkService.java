@@ -25,6 +25,7 @@ import com.xu.ntripclint.network.NetManager;
 import com.xu.ntripclint.ntrip.NtripCallBack;
 import com.xu.ntripclint.ntrip.NtripManager;
 import com.xu.ntripclint.pojo.ConfigBean;
+import com.xu.ntripclint.pojo.CustomNetError;
 import com.xu.ntripclint.utils.FileLogUtils;
 import com.xu.ntripclint.utils.LocManager;
 import com.xu.ntripclint.utils.Logs;
@@ -55,6 +56,7 @@ public class WorkService extends Service {
     public static final boolean mockGpgga = false;
     public boolean mockUpload = false;
     public boolean recorderLoc = false;
+    public boolean recorderNetError = false;
     //复用ntrip通道上传
     public boolean reUseNtripChanel = false;
     String currentFixNmea;
@@ -99,21 +101,34 @@ public class WorkService extends Service {
 
                             //}
                         }
-
-                        currentNmea = nmea;
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                 }
+                currentNmea = nmea;
             }
             if (recorderLoc) {
-                Message message = recorderHandler.obtainMessage();
-                message.obj = nmea;
-                recorderHandler.sendMessage(message);
+                recorderLoc(nmea);
             }
         }
     };
+
+    private void recorderLoc(String nmea) {
+        Message message = recorderHandler.obtainMessage(LOG_LOC_MSG);
+        message.obj = nmea;
+        recorderHandler.sendMessage(message);
+    }
+
+    private void recorderNetError(CustomNetError error) {
+        if (isRecorderNetError()) {
+            Message message = recorderHandler.obtainMessage(LOG_NET_MSG);
+            message.obj = error;
+            recorderHandler.sendMessage(message);
+        }
+
+    }
+
     IServiceCallBack serviceCallBack;
 
     public void setServiceCallBack(IServiceCallBack callBack) {
@@ -122,6 +137,20 @@ public class WorkService extends Service {
 
     public void setRecorderLoc(boolean recorderLoc) {
         this.recorderLoc = recorderLoc;
+    }
+
+    //是否记录网络错误到日志
+    public void setRecorderNetError(boolean recorderNetError) {
+        this.recorderNetError = recorderNetError;
+    }
+
+    //是否记录定位数据
+    public boolean isRecorderLoc() {
+        return recorderLoc;
+    }
+
+    public boolean isRecorderNetError() {
+        return recorderNetError;
     }
 
     private String GetnSolutionState(int nType) {
@@ -155,14 +184,22 @@ public class WorkService extends Service {
         return strSolutionState;
     }
 
+    private static final int LOG_LOC_MSG = 0x100;
+    private static final int LOG_NET_MSG = 0X101;
 
     private void initRecorderHandler() {
         recorderHandThread.start();
         recorderHandler = new Handler(recorderHandThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
-                String obj = (String) msg.obj;
-                FileLogUtils.writeLogtoFile(obj);
+                if (msg.what == LOG_LOC_MSG) {
+                    String obj = (String) msg.obj;
+                    FileLogUtils.writeLogtoFile(obj);
+                } else if (msg.what == LOG_NET_MSG) {
+                    CustomNetError obj = (CustomNetError) msg.obj;
+                    FileLogUtils.writeWifiLogtoFile(obj.error, obj.throwable);
+                }
+
             }
         };
     }
@@ -225,6 +262,14 @@ public class WorkService extends Service {
                 if (serviceCallBack != null)
                     serviceCallBack.ntripDebugData(error);
             }
+
+            @Override
+            public void onReceiveNetError(String error, Throwable e) {
+
+                CustomNetError customNetError = new CustomNetError(e, error);
+                recorderNetError(customNetError);
+
+            }
         });
         ntripManager.connectServer();
     }
@@ -249,6 +294,13 @@ public class WorkService extends Service {
             protected void ondisConnect() {
                 if (serviceCallBack != null)
                     serviceCallBack.onNetStatus(IServiceCallBack.STATUS_ERROR);
+            }
+
+            @Override
+            protected void onUploadNetError(String error, Throwable throwable) {
+
+                    CustomNetError customNetError = new CustomNetError(throwable, error);
+                    recorderNetError(customNetError);
             }
 
             @Override
@@ -289,7 +341,7 @@ public class WorkService extends Service {
                 if (mockUpload) {
                     data = Utils.GenerateGGAFromLatLon();
                 } else {
-                    data = currentFixNmea;
+                    data = currentNmea;
                 }
                 if (!TextUtils.isEmpty(data)) {
                     try {
@@ -300,6 +352,8 @@ public class WorkService extends Service {
                     } catch (IOException e) {
                         Logs.w("写入net数据异常");
                         e.printStackTrace();
+                        CustomNetError netError =new CustomNetError(e,"上报数据异常");
+                        recorderNetError(netError);
                     }
                 }
             }
@@ -364,8 +418,7 @@ public class WorkService extends Service {
     Handler mainHandler = new Handler(Looper.getMainLooper());
 
 
-    private void init1pxActivity()
-    {
+    private void init1pxActivity() {
         final ScreenManager screenManager = ScreenManager.getInstance(this);
         ScreenBroadcastListener listener = new ScreenBroadcastListener(this);
         listener.registerListener(new ScreenBroadcastListener.ScreenStateListener() {
@@ -373,20 +426,22 @@ public class WorkService extends Service {
             public void onScreenOn() {
                 screenManager.finishActivity();
             }
+
             @Override
             public void onScreenOff() {
                 screenManager.startActivity();
             }
         });
     }
+
     @Override
     public void onCreate() {
         super.onCreate();
-        FileLogUtils.writeLogtoFile("service onCreate"+toString());
+        FileLogUtils.writeLogtoFile("service onCreate" + toString());
         Utils.jobSchedule(this);
-       // Utils.getWake(this);
+        // Utils.getWake(this);
         initRecorderHandler();
-       // init1pxActivity();
+        // init1pxActivity();
         obdManager = OBDManager.getInstance(this);
         netManager = NetManager.getInstance(this);
         LocManager locManager = LocManager.getInstance(getApplicationContext());

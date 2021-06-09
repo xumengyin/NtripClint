@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * @author w
- *
- */
 public class Logs {
 	public static String TAG = "xuxu";
 

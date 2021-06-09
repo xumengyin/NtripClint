@@ -80,8 +80,8 @@ class MainActivity : AppCompatActivity() {
                                 if (status != IServiceCallBack.STATUS_OK) "ntrip连接失败" else "ntrip连接ok"
                             vNtripStatus.text = msg
                             if (!TextUtils.isEmpty(errorStr)) {
-                                Toast.makeText(this@MainActivity, errorStr, Toast.LENGTH_SHORT)
-                                    .show()
+//                                Toast.makeText(this@MainActivity, errorStr, Toast.LENGTH_SHORT)
+//                                    .show()
                             }
                         }
 
@@ -125,6 +125,11 @@ class MainActivity : AppCompatActivity() {
             vNtripStatus.text = "ntrip连接ok"
         } else {
             vNtripStatus.text = "ntrip连接失败"
+        }
+
+        service?.apply {
+            vSaveLoc.isChecked= isRecorderLoc
+            vSaveNetErr.isChecked= isRecorderNetError
         }
     }
 
@@ -199,6 +204,9 @@ class MainActivity : AppCompatActivity() {
 
         vSaveLoc.setOnCheckedChangeListener { buttonView, isChecked ->
             service?.setRecorderLoc(isChecked)
+        }
+        vSaveNetErr.setOnCheckedChangeListener { buttonView, isChecked ->
+            service?.setRecorderNetError(isChecked)
         }
         vCheckService.setOnCheckedChangeListener { buttonView, isChecked ->
 

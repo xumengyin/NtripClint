@@ -13,6 +13,9 @@ public abstract class NetCallback {
     protected void ondisConnect() {
 
     }
+    protected void onUploadNetError(String error,Throwable throwable) {
+
+    }
 
 
 }

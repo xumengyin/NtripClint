@@ -5,4 +5,5 @@ public interface NtripCallBack {
     void onConnected();
     void onDisConnect(String error);
     void onReceiveDebug(String error);
+    void onReceiveNetError(String error,Throwable e);
 }

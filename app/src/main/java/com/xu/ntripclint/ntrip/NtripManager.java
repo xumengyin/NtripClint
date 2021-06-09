@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 
 import com.xu.jniserialport.UtilityTools;
 import com.xu.ntripclint.pojo.ConfigBean;
+import com.xu.ntripclint.utils.FileLogUtils;
 import com.xu.ntripclint.utils.Logs;
 
 import java.io.DataOutputStream;
@@ -230,10 +231,17 @@ public class NtripManager implements INtrip {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            //Log.i("SendDataToNetwork", "SendDataToNetwork: Message send failed. Caught an exception");
+            uploadNetErr(e,"复用ntrip连接上报数据异常");
         }
     }
 
+    private void uploadNetErr(Throwable e,String error)
+    {
+        if(callBack!=null)
+        {
+            callBack.onReceiveNetError(error,e);
+        }
+    }
     private int count = 0; // 包序列
     int isFristData = 1;
 
@@ -487,12 +495,15 @@ public class NtripManager implements INtrip {
                         dataHandler.sendMessage(dataHandler.obtainMessage(MSG_NETWORK_GOT_DATA, tempdata));
                         read = nis.read(buffer, 0, 4096); // This is blocking
                     }
+                    throw new Exception("ntrip 连接读取到数据尾 -1");
                 }
             } catch (SocketTimeoutException ex) {
                 ex.printStackTrace();
                 mainHandler.sendMessage(mainHandler.obtainMessage(MSG_NETWORK_TIMEOUT));
+                uploadNetErr(ex,"ntrip连接异常SocketTimeoutException");
             } catch (Exception e) {
                 e.printStackTrace();
+                uploadNetErr(e,"ntrip Exception");
             } finally {
                 try {
                     if(nis!=null)
