@@ -165,9 +165,10 @@ public final class NetManager {
                     closeAll();
                     if (shouldReconnect && !shouldQuit) {
                         shouldReconnect = false;
-                        sendStartMsg(2000); //2s后重连
+                        sendStartMsg(3000); //2s后重连
                         // startImpl();
                     }
+                    isConnecting=false;
                 }
             }
         }.start();
