@@ -56,8 +56,8 @@ class MainActivity : AppCompatActivity() {
                     override fun onNmeaRecieve(data: String?, lat: Double, lng: Double,gpsS:String) {
                         data?.apply {
                             //解析 经纬度展示
-                            vLat.text="经度:"+lat
-                            vLng.text="纬度:"+lng
+                            vLat.text="纬度:"+lat
+                            vLng.text="经度:"+lng
                             vGpsStatus.text=gpsS
                             vNmeaData.text=data
                         }

@@ -27,7 +27,7 @@ public class AlarmService extends IntentService {
                 Logs.d("AlarmService  isService not run");
                 Intent intents = new Intent(AlarmService.this, WorkService.class);
                 intents.putExtra(WorkService.START_TAG, true);
-                startService(intent);
+                startService(intents);
 
             }
         });

@@ -2,10 +2,11 @@ package com.xu.ntripclint;
 
 import android.app.Application;
 
+import com.tencent.bugly.crashreport.CrashReport;
 import com.xu.ntripclint.utils.CrashHandler;
 
 public class Myapp extends Application {
-    public static final boolean isRecorder=false;
+    public static final boolean isRecorder=true;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -16,11 +17,11 @@ public class Myapp extends Application {
 //
 //            }
 //        },);
-        if(isRecorder)
-        {
-            CrashHandler crashHandler = CrashHandler.getInstance();
-            crashHandler.init(this);
-        }
-
+//        if(isRecorder)
+//        {
+//            CrashHandler crashHandler = CrashHandler.getInstance();
+//            crashHandler.init(this);
+//        }
+        CrashReport.initCrashReport(getApplicationContext(), "f121729b51", isRecorder);
     }
 }

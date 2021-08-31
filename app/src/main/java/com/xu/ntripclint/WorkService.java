@@ -324,8 +324,8 @@ public class WorkService extends Service {
         StartUploadData(uploadConfig.uploadTime * 1000);
     }
 
-    Timer upLoadTimer, sendNtripTimer;
-    TimerTask upLoadTimerTask, sendNtripTask;
+    Timer upLoadTimer, sendNtripTimer,keepLiveTimer;
+    TimerTask upLoadTimerTask, sendNtripTask,keepLiveTask;
 
     public void setMockUpload(boolean mockUpload) {
         this.mockUpload = mockUpload;
@@ -387,6 +387,20 @@ public class WorkService extends Service {
         return battery;
     }
 
+    private void startKeepLive()
+    {
+        cancleKeepLiveTimer();
+        keepLiveTask=new TimerTask() {
+            @Override
+            public void run() {
+                Intent intent =new Intent("com.xu.WatchDogReceiver");
+                intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+                sendBroadcast(intent);
+            }
+        };
+        keepLiveTimer=new Timer();
+        keepLiveTimer.scheduleAtFixedRate(keepLiveTask,1000,30*1000);
+    }
     private void cancleUploadTimer() {
         if (upLoadTimerTask != null) {
             upLoadTimerTask.cancel();
@@ -406,6 +420,16 @@ public class WorkService extends Service {
         if (sendNtripTimer != null) {
             sendNtripTimer.cancel();
             sendNtripTimer = null;
+        }
+    }
+    private void cancleKeepLiveTimer() {
+        if (keepLiveTimer != null) {
+            keepLiveTimer.cancel();
+            keepLiveTimer = null;
+        }
+        if (keepLiveTask != null) {
+            keepLiveTask.cancel();
+            keepLiveTask = null;
         }
     }
 
@@ -439,6 +463,7 @@ public class WorkService extends Service {
         super.onCreate();
         FileLogUtils.writeLogtoFile("service onCreate" + toString());
         Utils.jobSchedule(this);
+        startKeepLive();
         // Utils.getWake(this);
         initRecorderHandler();
         // init1pxActivity();
@@ -509,6 +534,7 @@ public class WorkService extends Service {
         super.onDestroy();
         cancleUploadTimer();
         cancleNtripTimer();
+        cancleKeepLiveTimer();
         LocManager.getInstance(getApplicationContext()).removeListener(locChangeLisener);
         LocManager.getInstance(getApplicationContext()).removeListener(nemaLisener);
         obdManager.close();
